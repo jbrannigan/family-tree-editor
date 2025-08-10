@@ -74,7 +74,14 @@ Issues and PRs are welcome.For bug reports, include:
 ---
 
 ## License
-MIT © 2025
+MIT License
+
+Copyright (c) 2025 James C. Brannigan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+...
+(standard MIT text)
+
 
 ---
 
