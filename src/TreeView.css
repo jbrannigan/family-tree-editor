@@ -1,0 +1,54 @@
+/* General tree text styling */
+.treeview-container {
+  font-family: "Segoe UI", Arial, sans-serif; /* change to preferred font */
+  font-size: 14px;  /* adjust size */
+  font-weight: 400; /* normal = 400, bold = 700, lighter = 300 */
+  color: #333;      /* text color */
+}
+
+/* Node name styling */
+.treeview-node-name {
+  font-weight: 400; /* medium weight for names */
+  color: #222;
+}
+
+/* Focused node styling */
+.treeview-node-name.focused {
+  color: #0b6efd;   /* highlight color */
+  font-weight: 600; /* slightly bolder */
+}
+/* layout */
+.tree-view { padding: 4px 0; }
+.tree-root, .tree-children { list-style: none; margin: 0; padding: 0; }
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.35;
+  padding: 2px 0;
+  white-space: nowrap;
+}
+
+/* toggles + focus btns */
+.tree-toggle, .tree-focus-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  opacity: 0.75;
+}
+.tree-toggle:hover, .tree-focus-btn:hover { opacity: 1; }
+.tree-toggle-spacer { display: inline-block; width: 1em; }
+
+/* typography — adjust freely */
+.tree-node-name {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;   /* try 13px/15px */
+  font-weight: 400;  /* try 300 for lighter */
+  color: #333;       /* softer than black */
+}
+.tree-node-name.focused {
+  font-weight: 600;
+  color: #0b6efd;    /* highlight */
+}
+

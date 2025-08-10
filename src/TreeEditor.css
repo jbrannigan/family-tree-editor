@@ -1,0 +1,91 @@
+.te-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Toolbar above editor */
+.te-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 14px;
+  color: #374151; /* gray-700 */
+  user-select: none;
+}
+
+.te-wrap {
+  display: flex;
+  gap: 8px;
+  height: 420px;
+  min-height: 200px;
+  resize: vertical;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
+/* Gutter: line numbers */
+.te-gutter {
+  width: 3.25rem;
+  height: 100%;
+  overflow: hidden;
+  color: #6b7280; /* gray-500 */
+  text-align: right;
+  user-select: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding-right: 6px;
+  border-right: 1px solid #f3f4f6; /* gray-100 */
+  background: #fafafa;
+  resize: none;
+}
+
+.te-line {
+  height: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 2px;
+}
+
+/* Textarea: only one scrollbar */
+.te-textarea {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #111827; /* gray-900 */
+  tab-size: 2;
+  resize: none;
+}
+
+/* Soft wrap enabled */
+.te-textarea.wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Soft wrap disabled (scroll horizontally) */
+.te-textarea.nowrap {
+  white-space: pre;
+  overflow-x: auto;
+}
+
+@media (max-width: 720px) {
+  .te-wrap {
+    height: 320px;
+  }
+}
