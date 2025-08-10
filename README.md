@@ -78,9 +78,6 @@ MIT © 2025
 
 ---
 
-
----
-
 ### **Release Notes** (for GitHub Releases page)
 
 **v1.0.0-beta – First Public Beta**
