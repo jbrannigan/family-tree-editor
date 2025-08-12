@@ -20,6 +20,7 @@ function Toggle({ visible, expanded, onClick }) {
       type="button"
       className="tree-toggle"
       aria-label={expanded ? "Collapse" : "Expand"}
+      aria-expanded={expanded}
       onClick={onClick}
     >
       {expanded ? "▾" : "▸"}
@@ -51,6 +52,7 @@ function TreeNode({ node, level, onFocus, focusedNodeId }) {
             type="button"
             className="tree-focus-btn"
             title="Focus"
+            aria-label={`Focus on ${node.name || "unnamed node"}` }
             onClick={() => onFocus(node)}
           >
             🔍
@@ -62,7 +64,7 @@ function TreeNode({ node, level, onFocus, focusedNodeId }) {
         <ul className="tree-children">
           {node.children.map((child, i) => (
             <TreeNode
-              key={child.id ?? `${node.id ?? node.name}-${i}`}
+              key={child.id}
               node={child}
               level={level + 1}
               onFocus={onFocus}
@@ -84,7 +86,7 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
       <ul className="tree-root">
         {nodes.map((n, i) => (
           <TreeNode
-            key={n.id ?? `${n.name}-${i}`}
+            key={n.id}
             node={n}
             level={0}
             onFocus={onFocus}

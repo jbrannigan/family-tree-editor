@@ -1,23 +1,47 @@
-export function parseTree(text) {
-  const lines = text.split('\n').filter(line => line.trim() !== '');
-  const root = { name: 'Root', children: [] };
-  const stack = [{ level: -1, node: root }];
+// utils/parseTree.js
+// Parse tab-indented text into an array of root nodes.
+// - Tabs are the source of truth for indentation.
+// - Optionally normalize leading groups of 4 spaces into a single tab.
+// - Generates stable-ish ids for React keys and focus behavior.
+
+export function parseTree(text, { normalizeSpaces = true } = {}) {
+  const src = String(text || "");
+  const linesRaw = src.split("\n");
+
+  const normalizeIndent = (line) => {
+    if (!normalizeSpaces) return line;
+    const m = line.match(/^[ \t]*/)?.[0] ?? "";
+    const tabs = m.replace(/ {4}/g, "\t").replace(/ +(?=\t)/g, "");
+    return tabs + line.slice(m.length);
+  };
+
+  const lines = linesRaw
+    .map((l) => normalizeIndent(l))
+    .filter((l) => l.trim() !== "");
+
+  const roots = [];
+  const stack = []; // { level, node }
+
+  let idSeq = 0;
+  const makeNode = (name) => ({ id: `n-${idSeq++}`, name, children: [] });
 
   for (const line of lines) {
-    const match = line.match(/^(\t*)(.*)$/);
-    const level = match[1].length;
-    const name = match[2].trim();
+    const m = line.match(/^(\t*)(.*)$/);
+    const level = (m?.[1] || "").length;
+    const name = (m?.[2] || "").trim();
+    const node = makeNode(name);
 
-    const newNode = { name, children: [] };
+    while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
 
-    while (stack.length > 0 && stack[stack.length - 1].level >= level) {
-      stack.pop();
+    if (stack.length === 0) {
+      roots.push(node);
+      stack.push({ level, node });
+      continue;
     }
-
     const parent = stack[stack.length - 1].node;
-    parent.children.push(newNode);
-    stack.push({ level, node: newNode });
+    parent.children.push(node);
+    stack.push({ level, node });
   }
 
-  return root.children.length === 1 ? root.children[0] : root;
+  return roots;
 }

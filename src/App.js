@@ -13,6 +13,7 @@ const App = () => {
   const [treeText, setTreeText] = useState("");
   const [treeData, setTreeData] = useState([]);           // full parsed tree (array)
   const [focusedNode, setFocusedNode] = useState(null);   // node object when focused
+  const [exportFocused, setExportFocused] = useState(true);
 
 // Width of the left (editor) pane in pixels. Starts at 50%.
 const containerRef = useRef(null);
@@ -85,10 +86,11 @@ useEffect(() => {
 
   // Downloads
   const handleDownloadHTML = () => {
+    const usedTree = exportFocused ? displayedTree : treeData;
     // Use treeData for HTML export of whole source text doc; 
     // change to displayedTree if you want export to respect focus
-    // const html = generateHTML(treeData); // <-Full Tree
-    const html = generateHTML(displayedTree); // <-Foces Tree
+    // const html = generateHTML(usedTree); // <-Full Tree
+    const html = generateHTML(usedTree); // <-Foces Tree
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -108,10 +110,11 @@ useEffect(() => {
     URL.revokeObjectURL(url);
   };
   const handleDownloadJSON = () => {
+    const usedTree = exportFocused ? displayedTree : treeData;
     // Use treeData for JSON export of whole source text doc; 
     // change to displayedTree if you want export to respect focus
-    //const json = JSON.stringify(treeData, null, 2); //<-Full Tree
-    const json = JSON.stringify(displayedTree, null, 2); //<-Focues Tree
+    //const json = JSON.stringify(usedTree, null, 2); //<-Full Tree
+    const json = JSON.stringify(usedTree, null, 2); //<-Focues Tree
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -138,6 +141,14 @@ useEffect(() => {
     a.click();
     URL.revokeObjectURL(url);
   };
+  
+  const normalizeTextIndentation = (t) =>
+  (t ?? "").split("\n").map(line => {
+    const m = line.match(/^[ \t]*/)?.[0] ?? "";
+    const tabs = m.replace(/ {4}/g, "\t").replace(/ +(?=\t)/g, "");
+    return tabs + line.slice(m.length);
+  }).join("\n");
+
 
   return (
     <div className="app-container" style={{ padding: "1rem" }}>
@@ -146,6 +157,17 @@ useEffect(() => {
 
         <UploadButton className= "btn btn-primary" onLoad={handleFileLoad} />
 
+        {/* Export behavior toggle */}
+        <label className="checkbox" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginLeft: 8 }}>
+          <input
+            type="checkbox"
+            checked={exportFocused}
+            onChange={(e) => setExportFocused(e.target.checked)}
+            aria-label="Export focused view"
+          />
+          <span>Export focused view</span>
+        </label>
+    
         <button className="btn" onClick={handleDownloadTXT} aria-label="Save Edited Text">
           Save Edited Text
        </button>
@@ -161,6 +183,11 @@ useEffect(() => {
         <button className="btn" onClick={handleDownloadJSON} aria-label="Download JSON">
           Download JSON
         </button>
+
+        <button className="btn" onClick={() => setTreeText(normalizeTextIndentation(treeText))}>
+          Normalize indentation
+        </button>
+
 
   {/* push Unfocus to the right (optional) */}
   <div className="spacer" />
