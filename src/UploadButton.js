@@ -1,7 +1,7 @@
 // UploadButton.js
 import React, { useRef } from "react";
 
-export default function UploadButton({ onLoad }) {
+export default function UploadButton({ onLoad, className }) {
   const inputRef = useRef(null);
 
   const openPicker = () => {
@@ -23,7 +23,7 @@ export default function UploadButton({ onLoad }) {
 
   return (
     <div style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-      <button type="button" onClick={openPicker}>
+      <button type="button" className={className} onClick={openPicker}>
         Choose File
       </button>
       <input

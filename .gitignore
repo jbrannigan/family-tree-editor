@@ -1,0 +1,12 @@
+
+node_modules/
+
+# Ignore build output and Windows Zone.Identifier artifacts
+build/
+*:[Zz]one.Identifier
+Zone.Identifier
+
+node_modules/
+build/
+*:[Zz]one.Identifier
+Zone.Identifier

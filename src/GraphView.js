@@ -198,7 +198,9 @@ function renderNode(node, config, out) {
 
 function normalizeForest(tree) {
   if (!tree) return [];
-  return Array.isArray(tree) ? tree : [tree];
+  const forest = Array.isArray(tree) ? tree : [tree];
+  // deep-clone to avoid mutating upstream state via _layout decorations
+  return JSON.parse(JSON.stringify(forest));
 }
 
 export default function GraphView({ tree }) {
