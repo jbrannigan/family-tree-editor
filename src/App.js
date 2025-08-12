@@ -142,13 +142,6 @@ useEffect(() => {
     URL.revokeObjectURL(url);
   };
   
-  const normalizeTextIndentation = (t) =>
-  (t ?? "").split("\n").map(line => {
-    const m = line.match(/^[ \t]*/)?.[0] ?? "";
-    const tabs = m.replace(/ {4}/g, "\t").replace(/ +(?=\t)/g, "");
-    return tabs + line.slice(m.length);
-  }).join("\n");
-
 
   return (
     <div className="app-container" style={{ padding: "1rem" }}>
@@ -183,11 +176,6 @@ useEffect(() => {
         <button className="btn" onClick={handleDownloadJSON} aria-label="Download JSON">
           Download JSON
         </button>
-
-        <button className="btn" onClick={() => setTreeText(normalizeTextIndentation(treeText))}>
-          Normalize indentation
-        </button>
-
 
   {/* push Unfocus to the right (optional) */}
   <div className="spacer" />

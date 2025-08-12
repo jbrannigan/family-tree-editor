@@ -17,6 +17,14 @@ export default function TreeEditor({ treeText, onTextChange }) {
     }
   };
 
+  const normalizeTextIndentation = (t) =>
+  (t ?? "").split("\n").map(line => {
+    const m = line.match(/^[ \t]*/)?.[0] ?? "";
+    const tabs = m.replace(/ {4}/g, "\t").replace(/ +(?=\t)/g, "");
+    return tabs + line.slice(m.length);
+  }).join("\n");
+
+
   const updateCursorLine = () => {
     const ta = taRef.current;
     if (!ta) return;
@@ -77,6 +85,19 @@ export default function TreeEditor({ treeText, onTextChange }) {
           />
           <span>Soft wrap</span>
         </label>
+
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            onTextChange(normalizeTextIndentation(treeText));
+            requestAnimationFrame(() => taRef.current?.focus());
+          }}
+          aria-label="Normalize indentation"
+          title="Convert leading 4-space groups to tabs"
+        >
+          Normalize indentation
+        </button>
       </div>
 
       <div className="te-wrap">
