@@ -1,54 +1,94 @@
-/* General tree text styling */
-.treeview-container {
-  font-family: "Segoe UI", Arial, sans-serif; /* change to preferred font */
-  font-size: 14px;  /* adjust size */
-  font-weight: 400; /* normal = 400, bold = 700, lighter = 300 */
-  color: #333;      /* text color */
+/* TreeView.css — small polish for hover, focus, and indent guides */
+.tree-view {
+  --indent: 18px;
+  --row-h: 28px;
+  --guide: rgba(0, 0, 0, 0.06);
+  --hover-bg: rgba(0, 0, 0, 0.05);
+  --active-outline: #3b82f6;
+  --border: #e5e7eb;
 }
 
-/* Node name styling */
-.treeview-node-name {
-  font-weight: 400; /* medium weight for names */
-  color: #222;
+/* Scrollable container with faint vertical indent guides */
+.tree-container {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  max-height: 360px;
+  overflow: auto;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0 calc(var(--indent) - 1px),
+      var(--guide) calc(var(--indent) - 1px) var(--indent)
+    );
+  /* keep guides aligned during scroll */
+  background-attachment: local;
 }
 
-/* Focused node styling */
-.treeview-node-name.focused {
-  color: #0b6efd;   /* highlight color */
-  font-weight: 600; /* slightly bolder */
-}
-/* layout */
-.tree-view { padding: 4px 0; }
-.tree-root, .tree-children { list-style: none; margin: 0; padding: 0; }
+/* Rows */
 .tree-row {
-  display: flex;
+  line-height: var(--row-h);
+  min-height: var(--row-h);
+  border-radius: 6px;
+  padding: 2px 4px;
+  cursor: default;
+}
+
+.tree-row:hover {
+  background: var(--hover-bg);
+}
+
+.tree-row.is-active {
+  outline: 2px solid var(--active-outline);
+  outline-offset: 2px;
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.tree-row.is-focused {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* Toggle + focus buttons */
+.tree-toggle {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  line-height: 1.35;
-  padding: 2px 0;
-  white-space: nowrap;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  user-select: none;
 }
 
-/* toggles + focus btns */
-.tree-toggle, .tree-focus-btn {
-  background: none;
-  border: none;
+.tree-toggle:hover {
+  background: #f9fafb;
+}
+
+.tree-focus-btn {
   cursor: pointer;
-  padding: 0 2px;
-  opacity: 0.75;
-}
-.tree-toggle:hover, .tree-focus-btn:hover { opacity: 1; }
-.tree-toggle-spacer { display: inline-block; width: 1em; }
-
-/* typography — adjust freely */
-.tree-node-name {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 14px;   /* try 13px/15px */
-  font-weight: 400;  /* try 300 for lighter */
-  color: #333;       /* softer than black */
-}
-.tree-node-name.focused {
-  font-weight: 600;
-  color: #0b6efd;    /* highlight */
+  font-size: 14px;
+  line-height: 1;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
 }
 
+.tree-focus-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Labels: elide overly long names nicely */
+.tree-node-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48ch;
+}
+
+/* Subtle transitions */
+@media (prefers-reduced-motion: no-preference) {
+  .tree-row { transition: background 120ms ease, outline-color 120ms ease; }
+  .tree-toggle, .tree-focus-btn { transition: background 120ms ease, border-color 120ms ease; }
+}
