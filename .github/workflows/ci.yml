@@ -30,13 +30,13 @@ jobs:
         run: npx vitest run --reporter=dot
 
   e2e:
-    name: E2E (Playwright) – shard ${{ matrix.shard }}
+    name: E2E (Playwright) – shard ${{ matrix.shard_index }}/3
     runs-on: ubuntu-latest
-    continue-on-error: true            # job non-blocking (flip to false later)
+    continue-on-error: true   # make job non-blocking while you tune E2E
     strategy:
       fail-fast: false
       matrix:
-        shard: [1/3, 2/3, 3/3]
+        shard_index: [1, 2, 3]   # three shards; use shard_index/3 below
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,14 +62,14 @@ jobs:
       - name: Install Playwright (Chromium only)
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright (${{ matrix.shard }})
-        run: npx playwright test --shard=${{ matrix.shard }} --reporter=html
-        continue-on-error: true        # step non-blocking (belt & suspenders)
+      - name: Run Playwright (${{ matrix.shard_index }}/3)
+        run: npx playwright test --shard=${{ matrix.shard_index }}/3 --reporter=html
+        continue-on-error: true   # belt & suspenders
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ replace(matrix.shard, '/', '-') }}  # -> 1-3, 2-3, 3-3
+          name: playwright-report-${{ matrix.shard_index }}-3   # safe (no slash)
           path: playwright-report
           retention-days: 7
