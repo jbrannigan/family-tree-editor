@@ -1,3 +1,6 @@
+![CI](https://github.com/jbrannigan/family-tree-editor/actions/workflows/ci.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 # Family Tree Editor
 
 A lightweight web app for editing a plain‑text family tree and viewing it as an interactive tree and SVG diagram. You can **focus** on a sub‑tree (🔍), **unfocus** to restore the full view, and **export** HTML / SVG / JSON (optionally just the focused view).
