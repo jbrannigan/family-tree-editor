@@ -29,3 +29,4 @@ Thumbs.db
 # Windows "Zone.Identifier" artifacts
 *:Zone.Identifier
 Zone.Identifier
+*.zip
