@@ -71,3 +71,10 @@ jobs:
       - name: Run Playwright (${{ matrix.shard }})
         run: npx playwright test --shard=${{ matrix.shard }} --reporter=dot
         continue-on-error: true   # flip to false to make e2e blocking
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.shard }}
+          path: playwright-report
+          retention-days: 7
