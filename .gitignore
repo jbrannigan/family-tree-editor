@@ -14,3 +14,7 @@ node_modules/
 build/
 *:Zone.Identifier
 Zone.Identifier
+node_modules/
+build/
+*:Zone.Identifier
+Zone.Identifier
