@@ -5,6 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Cancel previous runs for the same branch/PR
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -30,13 +31,13 @@ jobs:
         run: npx vitest run --reporter=dot
 
   e2e:
+    # Matrix runs 3 shards in parallel
     name: E2E (Playwright) – shard ${{ matrix.shard_index }}/3
     runs-on: ubuntu-latest
-    # continue-on-error: true   # make job non-blocking while you tune E2E
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [1, 2, 3]   # three shards; use shard_index/3 below
+        shard_index: [1, 2, 3]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,25 +65,27 @@ jobs:
 
       - name: Run Playwright (${{ matrix.shard_index }}/3)
         run: npx playwright test --shard=${{ matrix.shard_index }}/3 --reporter=html
-        # continue-on-error: true   # belt & suspenders
-        e2e-summary:
-          name: E2E (summary)
-          runs-on: ubuntu-latest
-          needs: [e2e]               # waits for all e2e shards
-          if: ${{ always() }}        # always run, then we decide to fail/pass
-          steps:
-          - name: Gate on matrix result
-            run: |
-              echo "Matrix result: ${{ needs.e2e.result }}"
-              if [ "${{ needs.e2e.result }}" != "success" ]; then
-                echo "One or more E2E shards failed"
-                exit 1
-              fi
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.shard_index }}-3   # safe (no slash)
+          name: playwright-report-${{ matrix.shard_index }}-3
           path: playwright-report
           retention-days: 7
+
+  e2e-summary:
+    # <-- IMPORTANT: this job is a TOP-LEVEL sibling under `jobs:`
+    name: E2E (summary)
+    runs-on: ubuntu-latest
+    needs: [e2e]       # wait for all shards to finish
+    if: ${{ always() }}  # run even if shards failed
+    steps:
+      - name: Gate on matrix result
+        run: |
+          echo "Matrix result: ${{ needs.e2e.result }}"
+          if [ "${{ needs.e2e.result }}" != "success" ]; then
+            echo "One or more E2E shards failed"
+            exit 1
+          fi
+          echo "All E2E shards passed"
