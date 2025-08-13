@@ -32,7 +32,7 @@ jobs:
   e2e:
     name: E2E (Playwright) – shard ${{ matrix.shard_index }}/3
     runs-on: ubuntu-latest
-    continue-on-error: true   # make job non-blocking while you tune E2E
+    # continue-on-error: true   # make job non-blocking while you tune E2E
     strategy:
       fail-fast: false
       matrix:
@@ -64,7 +64,7 @@ jobs:
 
       - name: Run Playwright (${{ matrix.shard_index }}/3)
         run: npx playwright test --shard=${{ matrix.shard_index }}/3 --reporter=html
-        continue-on-error: true   # belt & suspenders
+        # continue-on-error: true   # belt & suspenders
 
       - name: Upload Playwright HTML report
         if: always()
