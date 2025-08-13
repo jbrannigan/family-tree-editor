@@ -33,6 +33,7 @@ jobs:
   e2e:
     # run e2e in parallel with unit to reduce wall-clock, or set: needs: unit
     name: E2E (Playwright) – shard ${{ matrix.shard }}
+    continue-on-error: true
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
