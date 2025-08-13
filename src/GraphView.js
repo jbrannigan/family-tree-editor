@@ -258,13 +258,6 @@ export default function GraphView({ tree }) {
   return (
     <div className="graph-view" style={{ marginTop: 12 }}>
       <h3 style={{ marginTop: 0 }}>SVG Tree Diagram</h3>
-      <li>If the tree looks too small, use the "Download SVG" button to save 
-        the Tree Diagram to a separate file.</li>
-      <li> You may focus the Tree View to a smaller part of the tree.</li>
-      <li>You can view and possibly print the downloaded 
-        file with a browser.</li>
-      <li> Printing large SVG files is a 
-          separate subject... 😊</li>
       <br></br>
       <svg
         id="graph-svg"
