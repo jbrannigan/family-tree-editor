@@ -1,55 +1,62 @@
-/* TreeView.css — small polish for hover, focus, and indent guides */
+/* TreeView.css — scoped styles for hover, focus, and indent guides */
 .tree-view {
   --indent: 18px;
   --row-h: 28px;
-  --guide: rgba(0, 0, 0, 0.06);
+  --guide: rgba(0, 0, 0, 0.03);
   --hover-bg: rgba(0, 0, 0, 0.05);
   --active-outline: #3b82f6;
   --border: #e5e7eb;
 }
 
-/* Scrollable container with faint vertical indent guides */
-.tree-container {
+/* When a focus is active, hide indent guides altogether */
+.tree-view.is-focused { --guide: transparent; }
+
+/* Scroll viewport (no guides here) */
+.tree-view .tree-container {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px;
-  max-height: 360px;
-  overflow: auto;
+  max-height: 60vh;
+  overflow: auto; /* vertical + horizontal as needed */
+}
+
+/* Paint indent guides only under the actual content width */
+.tree-view .tree-root {
+  display: inline-block;         /* shrink to content width */
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   background:
     repeating-linear-gradient(
       to right,
       transparent 0 calc(var(--indent) - 1px),
       var(--guide) calc(var(--indent) - 1px) var(--indent)
     );
-  /* keep guides aligned during scroll */
-  background-attachment: local;
+  background-attachment: local;  /* keep lines aligned during scroll */
 }
 
-/* Rows */
-.tree-row {
+/* Rows: one per line, with tight outline */
+.tree-view .tree-row {
+  display: flex;                 /* block-level flex row */
+  width: max-content;            /* outline hugs content width */
+  max-width: 100%;               /* don’t overflow the pane */
   line-height: var(--row-h);
   min-height: var(--row-h);
   border-radius: 6px;
   padding: 2px 4px;
   cursor: default;
 }
-
-.tree-row:hover {
-  background: var(--hover-bg);
-}
-
-.tree-row.is-active {
+.tree-view .tree-row:hover { background: var(--hover-bg); }
+.tree-view .tree-row.is-active {
   outline: 2px solid var(--active-outline);
   outline-offset: 2px;
   background: rgba(59, 130, 246, 0.06);
 }
-
-.tree-row.is-focused {
-  background: rgba(59, 130, 246, 0.08);
-}
+.tree-view .tree-row.is-focused { background: rgba(59, 130, 246, 0.08); }
 
 /* Toggle + focus buttons */
-.tree-toggle {
+.tree-view .tree-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -59,13 +66,12 @@
   border-radius: 6px;
   background: #fff;
   user-select: none;
+  cursor: pointer;
+  margin-right: 6px;
 }
+.tree-view .tree-toggle:hover { background: #f9fafb; }
 
-.tree-toggle:hover {
-  background: #f9fafb;
-}
-
-.tree-focus-btn {
+.tree-view .tree-focus-btn {
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
@@ -73,22 +79,28 @@
   background: transparent;
   border-radius: 6px;
   padding: 2px 6px;
+  margin-left: 8px;
 }
-
-.tree-focus-btn:hover {
-  background: #f3f4f6;
-}
+.tree-view .tree-focus-btn:hover { background: #f3f4f6; }
 
 /* Labels: elide overly long names nicely */
-.tree-node-label {
+.tree-view .tree-node-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 48ch;
 }
 
+/* Toolbar disabled look */
+.tree-view .btn:disabled,
+.tree-view .btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Subtle transitions */
 @media (prefers-reduced-motion: no-preference) {
-  .tree-row { transition: background 120ms ease, outline-color 120ms ease; }
-  .tree-toggle, .tree-focus-btn { transition: background 120ms ease, border-color 120ms ease; }
+  .tree-view .tree-row { transition: background 120ms ease, outline-color 120ms ease; }
+  .tree-view .tree-toggle,
+  .tree-view .tree-focus-btn { transition: background 120ms ease, border-color 120ms ease; }
 }

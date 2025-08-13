@@ -1,6 +1,76 @@
+/* App.css */
 
-/* TreeView keyboard focus styles */
-.tree-row.is-active { outline: 2px solid #3b82f6; outline-offset: 2px; border-radius: 6px; }
-.tree-row.is-focused { background: rgba(59,130,246,.08); }
-.tree-toggle { cursor: pointer; }
-.tree-focus-btn { cursor: pointer; }
+/* --- Top toolbar layout --- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* left group vs right group */
+  gap: 12px 16px;
+  flex-wrap: wrap;                /* allow wrapping when narrow */
+  margin-bottom: 8px;
+}
+
+.topbar-left,
+.topbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-left  { flex: 1 1 auto; min-width: 320px; }
+.topbar-right { flex: 0 0 auto; margin-left: auto; }
+
+.topbar .btn,
+.topbar .export-toggle { white-space: nowrap; }
+
+.export-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* On narrow screens: keep downloads on the right, drop the checkbox BELOW them, right-aligned */
+@media (max-width: 900px) {
+  .topbar-right { flex-wrap: wrap; }
+  .topbar-right .export-toggle {
+    flex: 1 1 100%;
+    display: flex;
+    justify-content: flex-end; /* right align the checkbox on its own line */
+  }
+}
+
+/* --- Two-pane layout with draggable separator --- */
+.split {
+  display: flex;
+  flex-wrap: nowrap;     /* prevent Tree View from dropping under the editor */
+  gap: 16px;
+  align-items: flex-start;
+  overflow-x: auto;      /* scroll horizontally instead of wrapping */
+}
+
+.pane { min-width: 0; }  /* allow contents to shrink inside panes */
+
+.left-pane {
+  flex: 0 0 auto;        /* width is controlled via inline style from state */
+  min-width: 380px;      /* guardrail so editor doesn't collapse */
+}
+
+.right-pane {
+  flex: 1 1 auto;
+  min-width: 520px;      /* keep tree usable */
+}
+
+/* The vertical drag bar */
+.resizer {
+  flex: 0 0 6px;
+  width: 6px;
+  cursor: col-resize;
+  align-self: stretch;
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+.resizer.dragging { background: #94a3b8; }
+
+/* Keep the tree neatly inside the right pane */
+.right-pane .tree-view { max-width: 100%; }
+.right-pane .tree-container { max-height: 60vh; overflow: auto; }

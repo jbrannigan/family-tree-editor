@@ -19,11 +19,18 @@ function flattenVisible(nodes, expandedSet) {
   return out;
 }
 
-export default function TreeView({ tree, onFocus, focusedNodeId }) {
+export default function TreeView({
+  tree,
+  onFocus,
+  focusedNodeId,
+  onUnfocus,          // handler to clear focus
+  isFocused,          // boolean to control Unfocus enabled + hide guides
+}) {
   const roots = ensureArray(tree);
+
   const allIds = useMemo(() => {
     const ids = new Set();
-    const walk = (n) => { if (!n) return; ids.add(n.id); (n.children||[]).forEach(walk); };
+    const walk = (n) => { if (!n) return; ids.add(n.id); (n.children || []).forEach(walk); };
     roots.forEach(walk);
     return ids;
   }, [roots]);
@@ -65,7 +72,7 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
   const expandAll = () => setExpanded(new Set(allIds));
   const collapseAll = () => {
     const next = new Set();
-    roots.forEach(r => next.add(r.id)); // show just top level
+    roots.forEach((r) => next.add(r.id)); // show just top level
     setExpanded(next);
   };
 
@@ -107,7 +114,7 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
         if (hasChildren && isExpanded) {
           toggleNode(node.id);
         } else {
-          const parent = visible.slice(0, idx).reverse().find(r => r.level === level - 1);
+          const parent = visible.slice(0, idx).reverse().find((r) => r.level === level - 1);
           if (parent) setActiveId(parent.node.id);
         }
         break;
@@ -140,6 +147,7 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
     }
   };
 
+  // Scroll the active item into view when it changes
   useEffect(() => {
     if (!activeId) return;
     const el = containerRef.current?.querySelector(`[data-treeitem-id="${activeId}"]`);
@@ -149,10 +157,21 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
   }, [activeId]);
 
   return (
-    <div className="tree-view">
+    <div className={`tree-view${isFocused ? " is-focused" : ""}`}>
       <div className="tree-toolbar" style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
         <button type="button" className="btn" onClick={expandAll} aria-label="Expand all">Expand all</button>
         <button type="button" className="btn" onClick={collapseAll} aria-label="Collapse all">Collapse all</button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => onUnfocus?.()}
+          disabled={!isFocused}
+          aria-disabled={!isFocused}
+          title={isFocused ? "Restore full view" : "Nothing is focused"}
+          style={{ marginLeft: 4 }}
+        >
+          Unfocus
+        </button>
       </div>
 
       <div
@@ -163,12 +182,12 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
         tabIndex={0}
         onKeyDown={onKeyDown}
       >
-        <ul className="tree-root" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className="tree-root">
           {visible.map(({ node, level }) => {
             const hasChildren = node.children && node.children.length > 0;
             const isExpanded = expanded.has(node.id);
             const isActive = node.id === activeId;
-            const isFocused = focusedNodeId && node.id === focusedNodeId;
+            const isFocusedRow = focusedNodeId && node.id === focusedNodeId;
 
             return (
               <li
@@ -179,8 +198,8 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
                 aria-selected={isActive}
                 data-treeitem-id={node.id}
                 tabIndex={isActive ? 0 : -1}
-                className={`tree-row${isActive ? " is-active" : ""}${isFocused ? " is-focused" : ""}`}
-                style={{ display: "flex", alignItems: "center", marginLeft: level * 18 }}
+                className={`tree-row${isActive ? " is-active" : ""}${isFocusedRow ? " is-focused" : ""}`}
+                style={{ display: "flex", width: "max-content", alignItems: "center", marginLeft: level * 18 }}
                 onClick={() => setActiveId(node.id)}
               >
                 {hasChildren ? (
@@ -190,12 +209,11 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
                     aria-label={isExpanded ? "Collapse" : "Expand"}
                     aria-expanded={isExpanded}
                     onClick={(e) => { e.stopPropagation(); toggleNode(node.id); }}
-                    style={{ marginRight: 6 }}
                   >
                     {isExpanded ? "▾" : "▸"}
                   </button>
                 ) : (
-                  <span style={{ display: "inline-block", width: 16, marginRight: 6 }} />
+                  <span style={{ display: "inline-block", width: 22, height: 22, marginRight: 6 }} />
                 )}
 
                 <span className="tree-node-label" style={{ flex: "0 1 auto" }}>{node.name}</span>
@@ -206,7 +224,6 @@ export default function TreeView({ tree, onFocus, focusedNodeId }) {
                   title="Focus"
                   aria-label={`Focus on ${node.name || "unnamed node"}`}
                   onClick={(e) => { e.stopPropagation(); onFocus?.(node); }}
-                  style={{ marginLeft: 8 }}
                 >
                   🔍
                 </button>
