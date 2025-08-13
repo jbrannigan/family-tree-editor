@@ -1,140 +1,80 @@
-# Family Tree Editor (v1.0.0-beta)
+# Family Tree Editor
 
-A lightweight, tab-indented text → interactive family tree editor.  
-Paste or load a `.txt` with tab-indented lines and get:
-
-- Live **Tree View** (collapsible nodes, focus/unfocus)
-- **SVG View** (auto-generated diagram; downloadable)
-- **Exports**: HTML, JSON, SVG (filenames include a timestamp suffix)
-
-> **Beta:** The layout and styling are under active polish. Core parsing & views work.
+A lightweight web app for editing a plain‑text family tree and viewing it as an interactive tree and SVG diagram. You can **focus** on a sub‑tree (🔍), **unfocus** to restore the full view, and **export** HTML / SVG / JSON (optionally just the focused view).
 
 ---
 
-## Demo (Quick Start)
+## Quick start
 
-1. **Install**
-   ```bash
-   npm install
+**Requirements:** Node 18 or 20, npm
 
-3. **Run**
-   ```bash
-   npm start
-
-4. **Use**
-* Click **Choose File** or paste your tree text into the editor
-* Expand/collapse nodes; click focus to isolate a branch
-* **Unfocus** to return to the full tree
-* **Download** HTML / JSON / SVG
-
----
-
-## Text Format
-Use tabs to indicate hierachy:
-
+```bash
+npm install
+npm start
 ```
-John McGinty (1870-1909) & Margaret Kirk (1871-1906)
-\tJames Lynch McGinty (1896-1950) & Theresa Curtis (1894-1952)
-\t\tJohn G. McGinty (1922-1991)
-\t\tLoreen (1953)
+
+Open http://localhost:3000
+
+---
+
+## Using the app
+
+1. **Choose file** to load your tree text (or paste into the editor).
+2. Edit in the **Tree Text Editor** (left pane).  
+   - Use tabs for indentation (there’s a Normalize indentation tool if you start with spaces).
+3. The **Tree View** (right pane) updates live and provides keyboard navigation.
+4. Click 🔍 to **focus** on any node. Click **Unfocus** in the Tree View toolbar to restore.
+5. Turn on **Export focused view** (top‑right) to export only the focused sub‑tree.
+
+---
+
+## Keyboard (Tree View)
+
+- **↑ / ↓** — move to previous/next visible node  
+- **→** — expand node (or move into first child if already expanded)  
+- **←** — collapse node (or move to parent if already collapsed)  
+- **Enter / Space** — toggle expand/collapse (or focus leaf)  
+- **Home / End** — jump to first / last visible node
+
+Accessibility: the tree uses `role="tree"` / `role="treeitem"`, roving `tabIndex`, `aria-expanded`, and a visible focus outline.
+
+---
+
+## Exports & downloads
+
+- **Save edited text** — downloads the current editor text as `.txt`
+- **Download HTML** — static interactive page (collapsible tree)  
+- **Download SVG** — the graph view as raw SVG  
+- **Download JSON** — the current tree data
+
+> Tip: check **Export focused view** to export only the currently focused sub‑tree.
+
+---
+
+## Testing
+
+Unit tests (Vitest):
+```bash
+npm run test:unit
 ```
-* Tabs are the source of truth for nesting.
-* Mixed tabs/spaces are tolerated for *outdent*; prefer tabs overall.
+
+End‑to‑end tests (Playwright):
+```bash
+npm run test:e2e:install   # first time only
+npm run test:e2e
+```
 
 ---
 
-## Features
-* **Two-pane UI**: Editor (left) + Tree View (right); SVG Tree diagram below
-* **Focus mode**: focus/unfocus any node
-* **Exports**: HTML (collapsible), JSON, SVG
-* **Timestamped filenames**;e.g. ```family_tree-31JUL2025-1422.html```
+## Development notes
 
----
-
-## Roadmap
-* Tree View polish (grid lines, improved spacing)
-* SVG layout: smarter sizing, long-text handling
-* Better keyboard navigation in TreeView
-* Optional space-based indentation mode
-
----
-
-## Scripts
-* ```npm start``` - dev server (React)
-* ```npm run build``` production build
- 
----
-
-## Contributing
-Issues and PRs are welcome.For bug reports, include:
-* OS/Browser
-* The tree text (or a minimal repro)
-* Console errors (if any)
+- Two‑pane layout with a draggable resizer (`left` editor, `right` tree).  
+- Tree View shows subtle vertical **indent guides**; they automatically hide while a focus is active.  
+- Focus tools live in the Tree View toolbar: **Expand all**, **Collapse all**, **Unfocus**.  
+- HTML export includes a self‑contained collapsible tree for easy sharing.
 
 ---
 
 ## License
-MIT License
 
-Copyright (c) 2025 James C. Brannigan
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions: 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software. 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
----
-
-### **Release Notes** (for GitHub Releases page)
-
-**v1.0.0-beta – First Public Beta**
-
-🚀 **New**  
-- Interactive Tree View with collapsible nodes and focus/unfocus  
-- Live SVG diagram generation from parsed tree  
-- Upload `.txt` files or paste tab-indented text  
-- HTML, JSON, and SVG export with timestamped filenames  
-- Responsive split-pane layout for editor and views  
-
-⚠️ **Known Issues**  
-- SVG layout can clip long names in some cases  
-- Tree View expand/collapse needs spacing tweaks  
-- No drag-and-drop rearranging yet  
-- Only tab-indented format supported  
-
----
-
-### **CHANGELOG.md**
-
-```markdown
-# Changelog
-
-## [1.0.0-beta] – 2025-08-10
-### Added
-- Upload button to load `.txt` files into editor
-- Live parsing of tab-indented text to JSON tree
-- Interactive Tree View with collapsible nodes
-- Focus/unfocus feature in Tree View
-- SVG diagram generation
-- Download buttons for HTML, JSON, SVG (timestamped filenames)
-- Split-pane layout: editor + tree view, SVG view below
-
-### Changed
-- Unified layout with header toolbar for key actions
-
-### Known Issues
-- SVG text may overflow in rare cases
-- Tree View expand/collapse spacing could be improved
-- No drag/drop editing in Tree View
+MIT. See `LICENSE` (or the license section in this repository).
