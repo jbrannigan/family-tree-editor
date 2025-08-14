@@ -10,7 +10,7 @@ A lightweight web app for editing a plain‑text family tree and viewing it as a
 
 ---
 
-## LIve demo
+## Live demo
 
 ➡️ https://jbrannigan.github.io/family-tree-editor/
 
