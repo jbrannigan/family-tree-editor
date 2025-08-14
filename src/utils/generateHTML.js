@@ -8,7 +8,7 @@ function ensureArray(tree) {
 }
 
 // Assign stable ids if missing (used by focus/unfocus in the static HTML)
-function assignIds(nodes, prefix = "n") {
+function assignIds(nodes, prefix = 'n') {
   let counter = 0;
   const walk = (node) => {
     if (!node.id) node.id = `${prefix}-${counter++}`;
@@ -18,11 +18,8 @@ function assignIds(nodes, prefix = "n") {
   return nodes;
 }
 
-function escapeHTML(s = "") {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+function escapeHTML(s = '') {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // Serialize tree to a plain object the static HTML can consume
