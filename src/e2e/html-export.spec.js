@@ -3,12 +3,14 @@ import { generateHTML } from '../utils/generateHTML.js';
 
 test('exported HTML renders and collapses/expands', async ({ page }) => {
   const tree = [
-    { id: 'n-0', name: 'Root', children: [
-      { id: 'n-1', name: 'Child 1', children: [] },
-      { id: 'n-2', name: 'Child 2', children: [
-        { id: 'n-3', name: 'Grandchild', children: [] }
-      ]}
-    ]}
+    {
+      id: 'n-0',
+      name: 'Root',
+      children: [
+        { id: 'n-1', name: 'Child 1', children: [] },
+        { id: 'n-2', name: 'Child 2', children: [{ id: 'n-3', name: 'Grandchild', children: [] }] },
+      ],
+    },
   ];
   const html = generateHTML(tree);
   await page.setContent(html, { waitUntil: 'domcontentloaded' });
