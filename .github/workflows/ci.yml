@@ -11,8 +11,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint-format:
+  name: Lint & format check
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+
+    - name: Install deps
+      run: npm ci || npm i
+
+    - name: Prettier (no changes)
+      run: npm run format:check
+
+    - name: ESLint
+      run: npm run lint
+
   unit:
     name: Unit (Vitest)
+    needs: [lint-format]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,6 +54,7 @@ jobs:
   e2e:
     # Matrix runs 3 shards in parallel
     name: E2E (Playwright) – shard ${{ matrix.shard_index }}/3
+    needs: [lint-format]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -77,6 +99,7 @@ jobs:
   e2e-summary:
     # <-- IMPORTANT: this job is a TOP-LEVEL sibling under `jobs:`
     name: E2E (summary)
+    needs: [lint-format]
     runs-on: ubuntu-latest
     needs: [e2e] # wait for all shards to finish
     if: ${{ always() }} # run even if shards failed
