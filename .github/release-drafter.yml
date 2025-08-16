@@ -11,10 +11,3 @@ categories:
 
 change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
 version-template: '$MAJOR.$MINOR.$PATCH'
-
-template: |
-  ## Changes
-  $CHANGES
-
-  ## Contributors
-  $CONTRIBUTORS
