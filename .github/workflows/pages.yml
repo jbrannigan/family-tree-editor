@@ -2,7 +2,8 @@ name: Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  pull_request: # ← preview builds for PRs
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -19,28 +20,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install deps
         run: npm ci || npm i
-
       - name: Build
         run: npm run build
-
-      # SPA fallback so deep links work on GitHub Pages
       - name: Add 404.html for SPA routing
         run: cp build/index.html build/404.html
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build
 
   deploy:
+    if: github.event_name != 'pull_request' # only deploy to production on main
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -49,3 +45,13 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  preview:
+    if: github.event_name == 'pull_request' # previews for PRs
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          preview: true
