@@ -6,4 +6,5 @@ fix:
       - any-glob-to-any-file: ['src/**/*.{js,jsx}']
 chore:
   - changed-files:
-      - any-glob-to-any-file: ['.github/**', 'package*.json', '*config.*', 'playwright.config.*', 'vitest.config.*']
+      - any-glob-to-any-file:
+          ['.github/**', 'package*.json', '*config.*', 'playwright.config.*', 'vitest.config.*']
