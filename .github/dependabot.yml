@@ -1,20 +1,22 @@
 version: 2
 updates:
-  - package-ecosystem: npm
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: weekly
-      day: sunday
+      interval: "weekly"
+      day: "sunday"
     open-pull-requests-limit: 5
-    target-branch: main
-    labels: [chore]
+    target-branch: "main"
+    labels:
+      - "chore"
     commit-message:
       prefix: "chore(deps)"
 
-  - package-ecosystem: github-actions
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: weekly
-    labels: [chore]
+      interval: "weekly"
+    labels:
+      - "chore"
     commit-message:
       prefix: "chore(actions)"
