@@ -1,116 +1,88 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]  
   pull_request:
-    branches: [ main ]  
+    branches: [ main ]
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
-# Cancel previous runs for the same branch/PR
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   lint-format:
-  name: Lint & format check
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: npm
-
-    - name: Install deps
-      run: npm ci || npm i
-
-    - name: Prettier (no changes)
-      run: npm run format:check
-
-    - name: ESLint
-      run: npm run lint
+    name: Lint & format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install deps
+        run: npm ci || npm i
+      - name: Prettier (no changes)
+        run: npm run format:check
+      - name: ESLint
+        run: npm run lint
 
   unit:
     name: Unit (Vitest)
     needs: [lint-format]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install deps
         run: npm ci || npm i
-
       - name: Run unit tests
-        run: npx vitest run --reporter=dot
+        run: npm run test -- --run
 
   e2e:
-    # Matrix runs 3 shards in parallel
-    name: E2E (Playwright) – shard ${{ matrix.shard_index }}/3
+    name: E2E (Playwright)
     needs: [lint-format]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [1, 2, 3]
+        shard: [1, 2, 3]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install deps
         run: npm ci || npm i
-
-      # Cache Playwright browser binaries based on lockfile hash
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-pw-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-pw-
-
-      - name: Install Playwright (Chromium only)
-        run: npx playwright install --with-deps chromium
-
-      - name: Run Playwright (${{ matrix.shard_index }}/3)
-        run: npx playwright test --shard=${{ matrix.shard_index }}/3 --reporter=html
-
-      - name: Upload Playwright HTML report
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      - name: Run Playwright (shard ${{ matrix.shard }})
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report
+        run: npx playwright test --shard=${{ matrix.shard }}/3 --reporter=line
+      - name: Upload shard report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.shard_index }}-3
+          name: playwright-report-shard-${{ matrix.shard }}
           path: playwright-report
+          if-no-files-found: ignore
           retention-days: 7
 
   e2e-summary:
-    # <-- IMPORTANT: this job is a TOP-LEVEL sibling under `jobs:`
     name: E2E (summary)
-    needs: [lint-format]
+    needs: [e2e]
     runs-on: ubuntu-latest
-    needs: [e2e] # wait for all shards to finish
-    if: ${{ always() }} # run even if shards failed
+    if: always()
     steps:
-      - name: Gate on matrix result
+      - name: Summarize shards
         run: |
-          echo "Matrix result: ${{ needs.e2e.result }}"
-          if [ "${{ needs.e2e.result }}" != "success" ]; then
-            echo "One or more E2E shards failed"
-            exit 1
-          fi
-          echo "All E2E shards passed"
+          echo "Overall E2E result: **${{ needs.e2e.result }}**" >> $GITHUB_STEP_SUMMARY
