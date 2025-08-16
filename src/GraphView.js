@@ -1,14 +1,14 @@
 // GraphView.js
-import React, { useMemo } from "react";
+import { useMemo } from 'react';
 
 /**
  * Simple text wrapper that wraps on spaces, fallback to hard-break
  */
 function wrapText(label, maxCharsPerLine = 22) {
-  if (!label) return [""];
+  if (!label) return [''];
   const words = String(label).split(/\s+/);
   const lines = [];
-  let line = "";
+  let line = '';
 
   for (const w of words) {
     if (line.length === 0) {
@@ -20,11 +20,11 @@ function wrapText(label, maxCharsPerLine = 22) {
         for (let i = 0; i < w.length; i += maxCharsPerLine) {
           lines.push(w.slice(i, i + maxCharsPerLine));
         }
-        line = "";
+        line = '';
       }
     } else {
-      if ((line + " " + w).length <= maxCharsPerLine) {
-        line = line + " " + w;
+      if ((line + ' ' + w).length <= maxCharsPerLine) {
+        line = line + ' ' + w;
       } else {
         lines.push(line);
         if (w.length <= maxCharsPerLine) {
@@ -84,9 +84,7 @@ function computeSizes(node, config) {
     config.siblingGap * (childLayouts.length - 1);
   const subtreeWidth = Math.max(self.width, totalChildrenWidth);
   const subtreeHeight =
-    self.height +
-    config.levelGap +
-    Math.max(...childLayouts.map((c) => c.subtreeHeight), 0);
+    self.height + config.levelGap + Math.max(...childLayouts.map((c) => c.subtreeHeight), 0);
 
   node._layout = {
     ...self,
@@ -148,7 +146,7 @@ function renderNode(node, config, out) {
       fill="#fff"
       stroke="#444"
       strokeWidth="1.25"
-    />
+    />,
   );
 
   // Text (tspan lines)
@@ -162,14 +160,14 @@ function renderNode(node, config, out) {
       textAnchor="middle"
       fontSize="12"
       fill="#111"
-      style={{ fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif" }}
+      style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' }}
     >
       {lines.map((ln, i) => (
         <tspan key={i} x={textX} dy={i === 0 ? 0 : config.lineHeight}>
           {ln}
         </tspan>
       ))}
-    </text>
+    </text>,
   );
 
   // Links
@@ -183,12 +181,12 @@ function renderNode(node, config, out) {
 
     out.links.push(
       <path
-        key={`link-${(node.id || node.name)}->${(child.id || child.name)}`}
+        key={`link-${node.id || node.name}->${child.id || child.name}`}
         d={`M${startX},${startY} V${midY} H${endX} V${endY}`}
         stroke="#888"
         fill="none"
         strokeWidth="1"
-      />
+      />,
     );
 
     // recurse
@@ -220,7 +218,7 @@ export default function GraphView({ tree }) {
       // outer margin
       margin: 24,
     }),
-    []
+    [],
   );
 
   const { nodes, links, totalWidth, totalHeight } = useMemo(() => {
@@ -264,7 +262,7 @@ export default function GraphView({ tree }) {
         width="100%"
         height={Math.min(totalHeight, 1200)}
         viewBox={`0 0 ${Math.max(totalWidth, 800)} ${totalHeight}`}
-        style={{ border: "1px solid #ddd", background: "#fafafa" }}
+        style={{ border: '1px solid #ddd', background: '#fafafa' }}
         preserveAspectRatio="xMinYMin meet"
       >
         {links}
