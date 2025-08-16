@@ -2,8 +2,8 @@ name: Pages
 
 on:
   push:
-    branches: [ main ]
-  pull_request:              # ← preview builds for PRs
+    branches: [main]
+  pull_request: # ← preview builds for PRs
   workflow_dispatch:
 
 permissions:
@@ -36,7 +36,7 @@ jobs:
           path: build
 
   deploy:
-    if: github.event_name != 'pull_request'   # only deploy to production on main
+    if: github.event_name != 'pull_request' # only deploy to production on main
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -47,7 +47,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   preview:
-    if: github.event_name == 'pull_request'   # previews for PRs
+    if: github.event_name == 'pull_request' # previews for PRs
     needs: build
     runs-on: ubuntu-latest
     steps:
