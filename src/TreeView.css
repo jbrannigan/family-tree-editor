@@ -9,7 +9,9 @@
 }
 
 /* When a focus is active, hide indent guides altogether */
-.tree-view.is-focused { --guide: transparent; }
+.tree-view.is-focused {
+  --guide: transparent;
+}
 
 /* Scroll viewport (no guides here) */
 .tree-view .tree-container {
@@ -22,38 +24,41 @@
 
 /* Paint indent guides only under the actual content width */
 .tree-view .tree-root {
-  display: inline-block;         /* shrink to content width */
+  display: inline-block; /* shrink to content width */
   width: max-content;
   margin: 0;
   padding: 0;
   list-style: none;
-  background:
-    repeating-linear-gradient(
-      to right,
-      transparent 0 calc(var(--indent) - 1px),
-      var(--guide) calc(var(--indent) - 1px) var(--indent)
-    );
-  background-attachment: local;  /* keep lines aligned during scroll */
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 calc(var(--indent) - 1px),
+    var(--guide) calc(var(--indent) - 1px) var(--indent)
+  );
+  background-attachment: local; /* keep lines aligned during scroll */
 }
 
 /* Rows: one per line, with tight outline */
 .tree-view .tree-row {
-  display: flex;                 /* block-level flex row */
-  width: max-content;            /* outline hugs content width */
-  max-width: 100%;               /* don’t overflow the pane */
+  display: flex; /* block-level flex row */
+  width: max-content; /* outline hugs content width */
+  max-width: 100%; /* don’t overflow the pane */
   line-height: var(--row-h);
   min-height: var(--row-h);
   border-radius: 6px;
   padding: 2px 4px;
   cursor: default;
 }
-.tree-view .tree-row:hover { background: var(--hover-bg); }
+.tree-view .tree-row:hover {
+  background: var(--hover-bg);
+}
 .tree-view .tree-row.is-active {
   outline: 2px solid var(--active-outline);
   outline-offset: 2px;
   background: rgba(59, 130, 246, 0.06);
 }
-.tree-view .tree-row.is-focused { background: rgba(59, 130, 246, 0.08); }
+.tree-view .tree-row.is-focused {
+  background: rgba(59, 130, 246, 0.08);
+}
 
 /* Toggle + focus buttons */
 .tree-view .tree-toggle {
@@ -69,7 +74,9 @@
   cursor: pointer;
   margin-right: 6px;
 }
-.tree-view .tree-toggle:hover { background: #f9fafb; }
+.tree-view .tree-toggle:hover {
+  background: #f9fafb;
+}
 
 .tree-view .tree-focus-btn {
   cursor: pointer;
@@ -81,7 +88,9 @@
   padding: 2px 6px;
   margin-left: 8px;
 }
-.tree-view .tree-focus-btn:hover { background: #f3f4f6; }
+.tree-view .tree-focus-btn:hover {
+  background: #f3f4f6;
+}
 
 /* Labels: elide overly long names nicely */
 .tree-view .tree-node-label {
@@ -100,7 +109,15 @@
 
 /* Subtle transitions */
 @media (prefers-reduced-motion: no-preference) {
-  .tree-view .tree-row { transition: background 120ms ease, outline-color 120ms ease; }
+  .tree-view .tree-row {
+    transition:
+      background 120ms ease,
+      outline-color 120ms ease;
+  }
   .tree-view .tree-toggle,
-  .tree-view .tree-focus-btn { transition: background 120ms ease, border-color 120ms ease; }
+  .tree-view .tree-focus-btn {
+    transition:
+      background 120ms ease,
+      border-color 120ms ease;
+  }
 }
