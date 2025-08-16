@@ -1,18 +1,18 @@
 // App.js
-import React, { useState, useEffect, useRef } from "react";
-import TreeEditor from "./TreeEditor";
-import TreeView from "./TreeView";
-import GraphView from "./GraphView";
-import UploadButton from "./UploadButton";
+import { useState, useEffect, useRef } from 'react';
+import TreeEditor from './TreeEditor';
+import TreeView from './TreeView';
+import GraphView from './GraphView';
+import UploadButton from './UploadButton';
 // import DownloadButtons from "./DownloadButtons"; // (unused now)
-import { parseTree } from "./utils/parseTree";
-import { generateHTML } from "./utils/generateHTML";
-import "./App.css";
+import { parseTree } from './utils/parseTree';
+import { generateHTML } from './utils/generateHTML';
+import './App.css';
 
 const App = () => {
-  const [treeText, setTreeText] = useState("");
-  const [treeData, setTreeData] = useState([]);           // full parsed tree (array)
-  const [focusedNode, setFocusedNode] = useState(null);   // node object when focused
+  const [treeText, setTreeText] = useState('');
+  const [treeData, setTreeData] = useState([]); // full parsed tree (array)
+  const [focusedNode, setFocusedNode] = useState(null); // node object when focused
   const [exportFocused, setExportFocused] = useState(true);
 
   // Width of the left (editor) pane in pixels. Starts at 50%.
@@ -33,20 +33,20 @@ const App = () => {
       if (!dragging || !containerRef.current) return;
       const bounds = containerRef.current.getBoundingClientRect();
       // Clamp to [min, max] so panes can’t collapse or overlap
-      const min = 220;                          // min editor width
-      const max = bounds.width - 220;           // min tree width
+      const min = 220; // min editor width
+      const max = bounds.width - 220; // min tree width
       const x = Math.min(max, Math.max(min, e.clientX - bounds.left));
       setLeftWidth(x);
     };
     const onUp = () => setDragging(false);
 
     if (dragging) {
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
     }
     return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
     };
   }, [dragging]);
 
@@ -56,7 +56,7 @@ const App = () => {
       const parsed = parseTree(treeText) || [];
       setTreeData(parsed);
     } catch (err) {
-      console.error("Error parsing tree:", err);
+      console.error('Error parsing tree:', err);
       setTreeData([]);
     }
   }, [treeText]);
@@ -64,12 +64,25 @@ const App = () => {
   // Helper: returns like "-05AUG2025-2310"
   const tsSuffix = () => {
     const d = new Date();
-    const dd = String(d.getDate()).padStart(2, "0");
-    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const dd = String(d.getDate()).padStart(2, '0');
+    const months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
     const mmm = months[d.getMonth()];
     const yyyy = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
     return `-${dd}${mmm}${yyyy}-${hh}${mm}`;
   };
 
@@ -88,9 +101,9 @@ const App = () => {
   const handleDownloadHTML = () => {
     const usedTree = exportFocused ? displayedTree : treeData;
     const html = generateHTML(usedTree);
-    const blob = new Blob([html], { type: "text/html" });
+    const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `family_tree${tsSuffix()}.html`;
     a.click();
@@ -98,9 +111,9 @@ const App = () => {
   };
 
   const handleDownloadTXT = () => {
-    const blob = new Blob([treeText ?? ""], { type: "text/plain" });
+    const blob = new Blob([treeText ?? ''], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `family_tree_text${tsSuffix()}.txt`;
     a.click();
@@ -110,9 +123,9 @@ const App = () => {
   const handleDownloadJSON = () => {
     const usedTree = exportFocused ? displayedTree : treeData;
     const json = JSON.stringify(usedTree, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
+    const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `family_tree${tsSuffix()}.json`;
     a.click();
@@ -121,16 +134,16 @@ const App = () => {
 
   const handleDownloadSVG = () => {
     // Assumes GraphView sets id="graph-svg" on the <svg>. No-op if not present.
-    const svgEl = document.getElementById("graph-svg");
+    const svgEl = document.getElementById('graph-svg');
     if (!svgEl) {
-      console.warn("SVG element not found for download.");
+      console.warn('SVG element not found for download.');
       return;
     }
     const serializer = new XMLSerializer();
     const source = serializer.serializeToString(svgEl);
-    const blob = new Blob([source], { type: "image/svg+xml" });
+    const blob = new Blob([source], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `family_tree${tsSuffix()}.svg`;
     a.click();
@@ -138,7 +151,7 @@ const App = () => {
   };
 
   return (
-    <div className="app-container" style={{ padding: "1rem" }}>
+    <div className="app-container" style={{ padding: '1rem' }}>
       {/* Top toolbar */}
       <div className="topbar">
         <div className="topbar-left">
@@ -176,13 +189,13 @@ const App = () => {
 
       {/* Split: editor + tree with resizer */}
       <div className="split" ref={containerRef} style={{ minHeight: 300 }}>
-        <div className="pane left-pane" style={{ width: leftWidth || "50%" }}>
+        <div className="pane left-pane" style={{ width: leftWidth || '50%' }}>
           <h3 style={{ marginTop: 0 }}>Tree Text Editor</h3>
           <TreeEditor treeText={treeText} onTextChange={handleTextChange} />
         </div>
 
         <div
-          className={`resizer ${dragging ? "dragging" : ""}`}
+          className={`resizer ${dragging ? 'dragging' : ''}`}
           role="separator"
           aria-label="Resize editor and tree panes"
           aria-orientation="vertical"
@@ -190,8 +203,8 @@ const App = () => {
           onMouseDown={() => setDragging(true)}
           onKeyDown={(e) => {
             // keyboard nudges for accessibility
-            if (e.key === "ArrowLeft") setLeftWidth((w) => Math.max(220, w - 16));
-            if (e.key === "ArrowRight" && containerRef.current) {
+            if (e.key === 'ArrowLeft') setLeftWidth((w) => Math.max(220, w - 16));
+            if (e.key === 'ArrowRight' && containerRef.current) {
               const max = containerRef.current.clientWidth - 220;
               setLeftWidth((w) => Math.min(max, w + 16));
             }

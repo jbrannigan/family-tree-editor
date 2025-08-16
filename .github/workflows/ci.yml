@@ -78,8 +78,8 @@ jobs:
     # <-- IMPORTANT: this job is a TOP-LEVEL sibling under `jobs:`
     name: E2E (summary)
     runs-on: ubuntu-latest
-    needs: [e2e]       # wait for all shards to finish
-    if: ${{ always() }}  # run even if shards failed
+    needs: [e2e] # wait for all shards to finish
+    if: ${{ always() }} # run even if shards failed
     steps:
       - name: Gate on matrix result
         run: |

@@ -5,19 +5,17 @@
 // - Generates stable-ish ids for React keys and focus behavior.
 
 export function parseTree(text, { normalizeSpaces = true } = {}) {
-  const src = String(text || "");
-  const linesRaw = src.split("\n");
+  const src = String(text || '');
+  const linesRaw = src.split('\n');
 
   const normalizeIndent = (line) => {
     if (!normalizeSpaces) return line;
-    const m = line.match(/^[ \t]*/)?.[0] ?? "";
-    const tabs = m.replace(/ {4}/g, "\t").replace(/ +(?=\t)/g, "");
+    const m = line.match(/^[ \t]*/)?.[0] ?? '';
+    const tabs = m.replace(/ {4}/g, '\t').replace(/ +(?=\t)/g, '');
     return tabs + line.slice(m.length);
   };
 
-  const lines = linesRaw
-    .map((l) => normalizeIndent(l))
-    .filter((l) => l.trim() !== "");
+  const lines = linesRaw.map((l) => normalizeIndent(l)).filter((l) => l.trim() !== '');
 
   const roots = [];
   const stack = []; // { level, node }
@@ -27,8 +25,8 @@ export function parseTree(text, { normalizeSpaces = true } = {}) {
 
   for (const line of lines) {
     const m = line.match(/^(\t*)(.*)$/);
-    const level = (m?.[1] || "").length;
-    const name = (m?.[2] || "").trim();
+    const level = (m?.[1] || '').length;
+    const name = (m?.[2] || '').trim();
     const node = makeNode(name);
 
     while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
