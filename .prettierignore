@@ -3,3 +3,8 @@ node_modules
 playwright-report
 .github/**/*.yml
 .github/**/*.yaml
+pnpm-lock.yaml
+pnpm-lock.yml
+package-lock.json
+yarn.lock
+bun.lockb
