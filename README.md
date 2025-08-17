@@ -89,3 +89,5 @@ npm run test:e2e
 ## License
 
 MIT. See `LICENSE` (or the license section in this repository).
+
+<!-- preview check: 2025-08-17T05:02:55Z -->
