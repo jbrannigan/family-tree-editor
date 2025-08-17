@@ -1,7 +1,7 @@
 {
   "name": "family-tree-editor",
   "version": "1.0.0",
-   "homepage": "https://jbrannigan.github.io/family-tree-editor",
+  "homepage": "https://jbrannigan.github.io/family-tree-editor",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -10,12 +10,12 @@
     "test:e2e:install": "playwright install --with-deps",
     "test:all": "npm run test:unit && npm run test:e2e",
     "format": "prettier --write .",
+    "format:check": "prettier -c .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test:unit": "vitest run --reporter=dot",
     "test:e2e": "playwright test"
   },
-  
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
