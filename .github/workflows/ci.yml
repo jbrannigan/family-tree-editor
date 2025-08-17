@@ -73,6 +73,7 @@ jobs:
       - name: Run unit tests (Vitest)
         run: npm run test:unit
 <<<<<<< HEAD
+<<<<<<< HEAD
             # --- Generate coverage only on Node 20 to keep CI fast
       - name: Unit coverage (Vitest)                # Step label in the UI
         if: matrix.node == 20                       # Run this step only for the matrix leg where node=20
@@ -102,6 +103,10 @@ jobs:
         
     unit-summary:
 >>>>>>> a364af24 (ci: Unit tests on Node 18/20/22 + summary check)
+=======
+
+  unit-summary:
+>>>>>>> 2ea417b7 (ci: add Unit (summary) aggregator)
     name: Unit (summary)
     runs-on: ubuntu-latest
     needs: [unit]
