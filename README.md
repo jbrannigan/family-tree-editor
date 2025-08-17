@@ -3,7 +3,6 @@
 [![Pages deploy](https://img.shields.io/github/deployments/jbrannigan/family-tree-editor/github-pages?label=pages&logo=github)](https://github.com/jbrannigan/family-tree-editor/deployments/github-pages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-
 # Family Tree Editor
 
 A lightweight web app for editing a plain‑text family tree and viewing it as an interactive tree and SVG diagram. You can **focus** on a sub‑tree (🔍), **unfocus** to restore the full view, and **export** HTML / SVG / JSON (optionally just the focused view).
