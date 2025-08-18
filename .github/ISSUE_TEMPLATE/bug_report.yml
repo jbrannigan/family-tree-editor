@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a bug in Family Tree Editor
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: |
+        What were you doing, what did you expect, and what actually happened?
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: "List exact steps to reproduce (copy/paste input if relevant)."
+      placeholder: "1) …\n2) …\n3) …"
+    validations: { required: true }
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options: [Chrome, Firefox, Safari, Edge, Other/Multiple]
+  - type: input
+    id: preview
+    attributes:
+      label: Preview / Pages link (if applicable)
+      placeholder: "https://jbrannigan.github.io/family-tree-editor/…"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console logs / stack trace
+      render: shell
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recording
