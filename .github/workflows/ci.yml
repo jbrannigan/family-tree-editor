@@ -74,6 +74,9 @@ jobs:
         run: npm run test:unit
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7634b7a9 (ci: add Vitest coverage summary + HTML artifact)
             # --- Generate coverage only on Node 20 to keep CI fast
       - name: Unit coverage (Vitest)                # Step label in the UI
         if: matrix.node == 20                       # Run this step only for the matrix leg where node=20
