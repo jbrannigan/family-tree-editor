@@ -54,6 +54,8 @@ jobs:
 
   unit:
     name: Unit (Vitest) — Node ${{ matrix.node }}
+    needs: [changed-files]
+    if: ${{ github.event_name != 'pull_request' || needs.changed-files.outputs.docs_only != 'true' }}  # <-- add this
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
