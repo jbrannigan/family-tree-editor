@@ -51,6 +51,29 @@ jobs:
 
       - name: Run unit tests (Vitest)
         run: npm run test:unit
+            # --- Generate coverage only on Node 20 to keep CI fast
+      - name: Unit coverage (Vitest)                # Step label in the UI
+        if: matrix.node == 20                       # Run this step only for the matrix leg where node=20
+        run: npm run test:unit -- --coverage        # Re-run vitest with coverage enabled (outputs ./coverage/*)
+
+      # --- Upload the full HTML report as a downloadable artifact
+      - name: Upload coverage artifact              # Step label in the UI
+        if: matrix.node == 20                       # Only upload once (Node 20 leg)
+        uses: actions/upload-artifact@v4            # GitHub’s official artifact uploader
+        with:
+          name: unit-coverage-html                  # Artifact name as it will appear on the run page
+          path: coverage                            # Upload the entire 'coverage' directory vitest produced
+          if-no-files-found: error                  # Fail the step if coverage didn’t generate for some reason
+          retention-days: 7                         # Keep the artifact for 7 days (tune as you like)
+
+      # --- Post a small Markdown table into the job's Summary tab
+      - name: Post coverage summary                 # Step label in the UI
+        if: matrix.node == 20                       # Only once (Node 20 leg)
+        run: |                                      # Multi-line shell script
+          node -e "const s=require('./coverage/coverage-summary.json').total; \
+            const row=(k)=>'| '+k+' | '+s[k].pct+'% |'; \
+            console.log(['# Unit coverage', '', '| Metric | % |','|---|---|',row('lines'),row('statements'),row('functions'),row('branches')].join('\n'))" \
+            >> $GITHUB_STEP_SUMMARY                  # Append Markdown to the special summary file GitHub renders
 
   unit-summary:
     name: Unit (summary)
