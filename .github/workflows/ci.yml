@@ -16,25 +16,25 @@ concurrency:
 
 jobs:
   changed-files:
-  name: Detect changed paths
-  runs-on: ubuntu-latest
-  outputs:
-    docs_only: ${{ steps.filter.outputs.docs_only }}
-  steps:
-    - uses: actions/checkout@v4
-    - id: filter
-      uses: dorny/paths-filter@v3
-      with:
-        # "docs_only" means: NO changes under src/, only docs/config/etc.
-        filters: |
-          docs_only:
-            - '!src/**'
-            - '.github/**'
-            - 'README.md'
-            - 'CONTRIBUTING.md'
-            - 'SECURITY.md'
-            - 'LICENSE'
-            - '*.md'
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.filter.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # "docs_only" means: NO changes under src/, only docs/config/etc.
+          filters: |
+            docs_only:
+              - '!src/**'
+              - '.github/**'
+              - 'README.md'
+              - 'CONTRIBUTING.md'
+              - 'SECURITY.md'
+              - 'LICENSE'
+              - '*.md'
 
   lint-format:
     name: Lint & format check
