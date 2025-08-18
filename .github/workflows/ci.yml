@@ -113,7 +113,7 @@ jobs:
 
   e2e:
     name: E2E (Playwright)
-    needs: [lint-format, chanded-files]
+    needs: [lint-format, changed-files]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
