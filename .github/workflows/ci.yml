@@ -15,6 +15,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changed-files:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.filter.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # "docs_only" means: NO changes under src/, only docs/config/etc.
+          filters: |
+            docs_only:
+              - '!src/**'
+              - '.github/**'
+              - 'README.md'
+              - 'CONTRIBUTING.md'
+              - 'SECURITY.md'
+              - 'LICENSE'
+              - '*.md'
+
   lint-format:
     name: Lint & format check
     runs-on: ubuntu-latest
@@ -92,12 +113,13 @@ jobs:
 
   e2e:
     name: E2E (Playwright)
-    needs: [lint-format]
+    needs: [lint-format, changed-files]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
+    if: ${{ github.event_name != 'pull_request' || needs.changed-files.outputs.docs_only != 'true' }}    
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
@@ -128,10 +150,29 @@ jobs:
 
   e2e-summary:
     name: E2E (summary)
-    needs: [e2e]
     runs-on: ubuntu-latest
-    if: always()
+    needs: [changed-files, e2e]   # keep both
+    if: ${{ always() }}           # always run so the required check is present
     steps:
+      # Fast-path for docs-only PRs: mark E2E as skipped (success)
+      - name: Docs-only PR → mark E2E as skipped (pass)
+        if: ${{ github.event_name == 'pull_request' && needs.changed-files.outputs.docs_only == 'true' }}
+        run: echo "Docs-only changes → skipping E2E shards."
+
+      # On code PRs: fail if the matrix job failed or was cancelled
+      - name: Fail if E2E failed/cancelled
+        if: ${{ needs.changed-files.outputs.docs_only != 'true' && (needs.e2e.result == 'failure' || needs.e2e.result == 'cancelled') }}
+        run: |
+          echo "E2E job result: ${{ needs.e2e.result }}"
+          exit 1
+
+      # Otherwise, all good
+      - name: All E2E shards passed
+        if: ${{ needs.changed-files.outputs.docs_only != 'true' && needs.e2e.result == 'success' }}
+        run: echo "All green ✅"
+
+      # Optional: keep the old one-line summary note
       - name: Summarize shards
+        if: ${{ needs.changed-files.outputs.docs_only != 'true' }}
         run: |
           echo "Overall E2E result: **${{ needs.e2e.result }}**" >> $GITHUB_STEP_SUMMARY
