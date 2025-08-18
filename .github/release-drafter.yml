@@ -64,7 +64,7 @@ sort-by: merged_at
 sort-direction: descending
 prerelease: false
 include-pre-releases: false
-latest: "true"
+latest: 'true'
 
 # Nice fallbacks
 no-changes-template: '* No changes'
