@@ -1,14 +1,26 @@
-name: Release Drafter
+# .github/workflows/release-drafter.yml
+name: Update release draft
+
 on:
+  # Update the draft when PRs are opened/edited/sync’d (uses PR metadata)
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
+  # Refresh the draft when code lands on main
   push:
     branches: [main]
-    workflow_dispatch: #did it work?
+  # Allow manual runs from the Actions tab
+  workflow_dispatch:
+
 permissions:
-  contents: write
+  contents: write        # required to create/update the draft release
+  pull-requests: read    # read PR info for categorization
+
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
