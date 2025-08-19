@@ -14,7 +14,7 @@ const App = () => {
   const [treeData, setTreeData] = useState([]); // full parsed tree (array)
   const [focusedNode, setFocusedNode] = useState(null); // node object when focused
   const [exportFocused, setExportFocused] = useState(true);
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState('');
   // Width of the left (editor) pane in pixels. Starts at 50%.
   const containerRef = useRef(null);
   const [leftWidth, setLeftWidth] = useState(0); // 0 means "compute 50% on mount"
