@@ -23,15 +23,20 @@ export default [
     },
     settings: { react: { version: 'detect' } },
     rules: {
+      // React
       'react/jsx-uses-vars': 'error',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+
+      // React Hooks
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 
   // Config files (Node env)
   {
-    files: ['playwright.config.*', 'vitest.config.*', 'vite.config.*'],
+    files: ['playwright.config.*', 'vitest.config.*', 'vite.config.*', 'eslint.config.*'],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',

@@ -121,3 +121,15 @@
       border-color 120ms ease;
   }
 }
+/* Dim non-matches only when a filter is active */
+.tree-view.has-filter .tree-row.is-dim {
+  opacity: 0.35;
+}
+
+/* Highlight matched substring */
+.tree-view mark {
+  background: #ffef8a;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+

@@ -45,17 +45,14 @@ export default function TreeView({
   tree,
   onFocus,
   focusedNodeId,
-  onUnfocus,        // keep existing API
-  isFocused,        // keep existing API
-  filterText = '',  // provided by App
+  onUnfocus, // keep existing API
+  isFocused, // keep existing API
+  filterText = '', // provided by App
 }) {
   const roots = ensureArray(tree);
 
   // Indexes for fast lookups
-  const { allIds, nodeById, parentById, rootIds } = useMemo(
-    () => buildIndexes(roots),
-    [roots]
-  );
+  const { allIds, nodeById, parentById, rootIds } = useMemo(() => buildIndexes(roots), [roots]);
 
   // Expanded state; initialize with everything open (reasonable default)
   const [expanded, setExpanded] = useState(() => new Set(allIds));
