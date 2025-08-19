@@ -14,7 +14,7 @@ const App = () => {
   const [treeData, setTreeData] = useState([]); // full parsed tree (array)
   const [focusedNode, setFocusedNode] = useState(null); // node object when focused
   const [exportFocused, setExportFocused] = useState(true);
-
+  const [filter, setFilter] = useState("");
   // Width of the left (editor) pane in pixels. Starts at 50%.
   const containerRef = useRef(null);
   const [leftWidth, setLeftWidth] = useState(0); // 0 means "compute 50% on mount"
@@ -214,12 +214,24 @@ const App = () => {
         <div className="pane right-pane">
           <h3 style={{ marginTop: 0 }}>Tree View</h3>
           <p>Click on any of the 🔍 to focus on that part.</p>
+          <div className="toolbar row wrap">
+            <input
+              className="input"
+              placeholder="Filter names…"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              aria-label="Filter tree by name"
+              style={{ maxWidth: 220 }}
+            />
+          </div>
+
           <TreeView
             tree={displayedTree}
             onFocus={handleFocus}
             onUnfocus={handleUnfocus}
             focusedNodeId={focusedNode ? focusedNode.id : null}
             isFocused={!!focusedNode}
+            filterText={filter}
           />
         </div>
       </div>
