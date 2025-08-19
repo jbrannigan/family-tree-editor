@@ -7,6 +7,28 @@ function ensureArray(tree) {
   return Array.isArray(tree) ? tree : [tree];
 }
 
+function buildIndexes(roots) {
+  const allIds = new Set();
+  const parentById = new Map();
+  const nodeById = new Map();
+  const rootIds = [];
+
+  const walk = (node, parentId = null) => {
+    if (!node) return;
+    nodeById.set(node.id, node);
+    allIds.add(node.id);
+    if (parentId != null) parentById.set(node.id, parentId);
+    (node.children || []).forEach((c) => walk(c, node.id));
+  };
+
+  for (const r of roots) {
+    if (!r) continue;
+    rootIds.push(r.id);
+    walk(r, null);
+  }
+  return { allIds, nodeById, parentById, rootIds };
+}
+
 function flattenVisible(nodes, expandedSet) {
   const out = [];
   const walk = (node, level, parentId = null) => {
@@ -23,29 +45,43 @@ export default function TreeView({
   tree,
   onFocus,
   focusedNodeId,
-  onUnfocus, // handler to clear focus
-  isFocused, // boolean to control Unfocus enabled + hide guides
+  onUnfocus,        // keep existing API
+  isFocused,        // keep existing API
+  filterText = '',  // provided by App
 }) {
   const roots = ensureArray(tree);
 
-  const allIds = useMemo(() => {
-    const ids = new Set();
-    const walk = (n) => {
-      if (!n) return;
-      ids.add(n.id);
-      (n.children || []).forEach(walk);
-    };
-    roots.forEach(walk);
-    return ids;
-  }, [roots]);
+  // Indexes for fast lookups
+  const { allIds, nodeById, parentById, rootIds } = useMemo(
+    () => buildIndexes(roots),
+    [roots]
+  );
 
-  // Expanded: default expand all on mount/when data changes
+  // Expanded state; initialize with everything open (reasonable default)
   const [expanded, setExpanded] = useState(() => new Set(allIds));
   useEffect(() => {
-    setExpanded(new Set(allIds));
-  }, [allIds]);
+    // when data changes (not filtering), keep user's expansion as-is;
+    // if filtering, we'll handle expansion in the filter effect below.
+    if (!filterText.trim()) {
+      // Ensure at least roots are present in expanded set
+      setExpanded((prev) => {
+        const next = new Set([...prev].filter((id) => allIds.has(id)));
+        if (next.size === 0) rootIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  }, [allIds, rootIds, filterText]);
 
-  // Roving focus (keyboard) — keep one "active" treeitem
+  // Remember user's expansion while filtering
+  const prevExpandedRef = useRef(null);
+  const wasFilteringRef = useRef(false);
+
+  const q = filterText.trim().toLowerCase();
+
+  // Visible rows depend on expanded set
+  const visible = useMemo(() => flattenVisible(roots, expanded), [roots, expanded]);
+
+  // Active (roving) focus
   const [activeId, setActiveId] = useState(null);
   useEffect(() => {
     if (focusedNodeId && allIds.has(focusedNodeId)) {
@@ -55,8 +91,6 @@ export default function TreeView({
       if (first) setActiveId(first);
     }
   }, [focusedNodeId, allIds, roots, activeId]);
-
-  const visible = useMemo(() => flattenVisible(roots, expanded), [roots, expanded]);
 
   const indexById = useMemo(() => {
     const map = new Map();
@@ -78,9 +112,88 @@ export default function TreeView({
   const expandAll = () => setExpanded(new Set(allIds));
   const collapseAll = () => {
     const next = new Set();
-    roots.forEach((r) => next.add(r.id)); // show just top level
+    rootIds.forEach((id) => next.add(id)); // show just top level
     setExpanded(next);
   };
+
+  // Filter helpers (highlight/dim)
+  const matches = (name) => {
+    if (!q) return true;
+    const s = (name || '').toLowerCase();
+    return s.includes(q);
+  };
+  const renderName = (name) => {
+    if (!q) return name || '(unnamed)';
+    const raw = name || '(unnamed)';
+    const low = raw.toLowerCase();
+    const i = low.indexOf(q);
+    if (i === -1) return raw;
+    return (
+      <>
+        {raw.slice(0, i)}
+        <mark>{raw.slice(i, i + q.length)}</mark>
+        {raw.slice(i + q.length)}
+      </>
+    );
+  };
+
+  // SMART FILTER EXPANSION:
+  // When q becomes non-empty: save expansion, then expand only ancestors of matches (+roots)
+  // When q clears: restore previous expansion (intersecting current ids)
+  useEffect(() => {
+    const nowFiltering = !!q;
+
+    if (nowFiltering && !wasFilteringRef.current) {
+      // entering filter
+      wasFilteringRef.current = true;
+      prevExpandedRef.current = new Set(expanded);
+
+      // Compute ancestors of matches
+      const toExpand = new Set(rootIds);
+      for (const id of allIds) {
+        const n = nodeById.get(id);
+        if (!n) continue;
+        if (matches(n.name)) {
+          // add all ancestors up to root
+          let cur = id;
+          while (cur != null) {
+            const parent = parentById.get(cur);
+            if (parent != null) toExpand.add(parent);
+            cur = parent ?? null;
+          }
+        }
+      }
+      setExpanded(toExpand);
+    } else if (!nowFiltering && wasFilteringRef.current) {
+      // leaving filter
+      wasFilteringRef.current = false;
+      const saved = prevExpandedRef.current || new Set();
+      const restore = new Set();
+      for (const id of saved) if (allIds.has(id)) restore.add(id);
+      // If nothing to restore, keep roots visible
+      if (restore.size === 0) rootIds.forEach((id) => restore.add(id));
+      setExpanded(restore);
+      prevExpandedRef.current = null;
+    }
+  }, [q, allIds, nodeById, parentById, rootIds, expanded]);
+
+  // When starting a filter, move focus to the first visible match
+  useEffect(() => {
+    if (!q) return;
+    const firstMatch = visible.find(({ node }) => matches(node.name));
+    if (firstMatch && firstMatch.node.id !== activeId) {
+      setActiveId(firstMatch.node.id);
+    }
+  }, [q, visible, activeId]);
+
+  // Keep active row in view
+  useEffect(() => {
+    if (!activeId) return;
+    const el = containerRef.current?.querySelector(`[data-treeitem-id="${activeId}"]`);
+    if (el && 'scrollIntoView' in el) {
+      el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  }, [activeId]);
 
   const onKeyDown = (e) => {
     if (!activeId) return;
@@ -156,17 +269,8 @@ export default function TreeView({
     }
   };
 
-  // Scroll the active item into view when it changes
-  useEffect(() => {
-    if (!activeId) return;
-    const el = containerRef.current?.querySelector(`[data-treeitem-id="${activeId}"]`);
-    if (el && 'scrollIntoView' in el) {
-      el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    }
-  }, [activeId]);
-
   return (
-    <div className={`tree-view${isFocused ? ' is-focused' : ''}`}>
+    <div className={`tree-view${isFocused ? ' is-focused' : ''}${q ? ' has-filter' : ''}`}>
       <div
         className="tree-toolbar"
         style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
@@ -204,6 +308,7 @@ export default function TreeView({
             const isExpanded = expanded.has(node.id);
             const isActive = node.id === activeId;
             const isFocusedRow = focusedNodeId && node.id === focusedNodeId;
+            const hit = matches(node.name);
 
             return (
               <li
@@ -214,7 +319,12 @@ export default function TreeView({
                 aria-selected={isActive}
                 data-treeitem-id={node.id}
                 tabIndex={isActive ? 0 : -1}
-                className={`tree-row${isActive ? ' is-active' : ''}${isFocusedRow ? ' is-focused' : ''}`}
+                className={
+                  'tree-row' +
+                  (isActive ? ' is-active' : '') +
+                  (isFocusedRow ? ' is-focused' : '') +
+                  (q && !hit ? ' is-dim' : '')
+                }
                 style={{
                   display: 'flex',
                   width: 'max-content',
@@ -243,7 +353,7 @@ export default function TreeView({
                 )}
 
                 <span className="tree-node-label" style={{ flex: '0 1 auto' }}>
-                  {node.name}
+                  {renderName(node.name)}
                 </span>
 
                 <button
