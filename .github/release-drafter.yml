@@ -1,72 +1,61 @@
-# .github/release-drafter.yml
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 tag-prefix: ''
-
-# REQUIRED in v6: this is the body of the drafted release
+change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
+change-title-escapes: '<*_&'
+no-changes-template: '* No changes'
+version-template: '$MAJOR.$MINOR.$PATCH$PRERELEASE'
+version-resolver:
+  major:
+    labels: ['breaking','major']
+  minor:
+    labels: ['feature','feat']
+  patch:
+    labels: ['fix','bug','chore','deps','docs','ci','test','refactor']
+  default: 'patch'
+categories:
+  - title: '🚀 Features'
+    labels: ['feature','feat']
+  - title: '🐛 Fixes'
+    labels: ['fix','bug']
+  - title: '🧰 Chores'
+    labels: ['chore','deps','ci','docs','test','refactor']
+exclude-labels: ['skip-changelog','no-release']
+include-labels: []
+include-paths: []
+exclude-contributors: []
+no-contributors-template: 'No contributors'
+replacers: []
+autolabeler:
+  - label: 'deps'
+    files: ['package.json','package-lock.json','pnpm-lock.yaml']
+  - label: 'docs'
+    files: ['**/*.md','.github/**']
+  - label: 'ci'
+    files: ['.github/workflows/**']
+  - label: 'feature'
+    branch: ['/^feat[/-].+/']
+    title: ['/^feat(\(.*\))?:/i']
+  - label: 'fix'
+    branch: ['/^fix[/-].+/']
+    title: ['/^fix(\(.*\))?:/i']
+  - label: 'chore'
+    branch: ['/^chore[/-].+/']
+    title: ['/^chore(\(.*\))?:/i']
+sort-by: merged_at
+sort-direction: descending
+prerelease: false
+prerelease-identifier: ''
+include-pre-releases: false
+latest: 'true'     # MUST be a string
+filter-by-commitish: false
+commitish: ''
+pull-request-limit: 50
+category-template: '## $TITLE'
+header: ''
+footer: ''
 template: |
   ## What's Changed
   $CHANGES
 
-  <!-- Optional: thanks -->
   $CONTRIBUTORS
-
-change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
-# Escape characters you don’t want rendered in titles (optional)
-change-title-escapes: '<*_&'
-
-version-template: '$MAJOR.$MINOR.$PATCH$PRERELEASE'
-version-resolver:
-  major:
-    labels: ['breaking', 'major']
-  minor:
-    labels: ['feature', 'feat']
-  patch:
-    labels: ['fix', 'bug', 'chore', 'deps', 'docs', 'ci', 'test']
-  default: patch
-
-categories:
-  - title: '🚀 Features'
-    labels: ['feature', 'feat']
-  - title: '🐛 Fixes'
-    labels: ['fix', 'bug']
-  - title: '🧰 Chores'
-    labels: ['chore', 'deps', 'ci', 'docs', 'test', 'refactor']
-
-exclude-labels:
-  - 'skip-changelog'
-  - 'no-release'
-
-# Auto-label helpful PRs by path/conventional commits (tune as you like)
-autolabeler:
-  - label: 'deps'
-    files:
-      - 'package.json'
-      - 'package-lock.json'
-  - label: 'docs'
-    files:
-      - '**/*.md'
-      - '.github/**'
-  - label: 'ci'
-    files:
-      - '.github/workflows/**'
-  - label: 'feature'
-    branch: ['/^feat[/-].+/']
-    title:  ['/^feat(\(.*\))?:/i']
-  - label: 'fix'
-    branch: ['/^fix[/-].+/']
-    title:  ['/^fix(\(.*\))?:/i']
-  - label: 'chore'
-    branch: ['/^chore[/-].+/']
-    title:  ['/^chore(\(.*\))?:/i']
-
-sort-by: merged_at
-sort-direction: descending
-prerelease: false
-include-pre-releases: false
-latest: "true"
-
-# Nice fallbacks
-no-changes-template: '* No changes'
-no-contributors-template: 'No contributors'
-replacers: []
