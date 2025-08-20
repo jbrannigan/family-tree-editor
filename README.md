@@ -5,7 +5,7 @@
 
 # Family Tree Editor
 
-A lightweight web app for editing a plain‑text family tree and viewing it as an interactive tree and SVG diagram. You can **focus** on a sub‑tree (🔍), **unfocus** to restore the full view, and **export** HTML / SVG / JSON (optionally just the focused view).
+A lightweight web app for editing a plain‑text family tree and viewing it as an interactive tree and SVG diagram. You can **focus** on a sub‑tree (🔍), **unfocus** to restore the full view, and **export** HTML / SVG / JSON (optionally just the focused view). You can filter the tree to find instances of a string
 
 ---
 
