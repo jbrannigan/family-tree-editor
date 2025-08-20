@@ -57,10 +57,7 @@ export default function TreeView({
   // Expanded state; initialize with everything open (reasonable default)
   const [expanded, setExpanded] = useState(() => new Set(allIds));
   useEffect(() => {
-    // when data changes (not filtering), keep user's expansion as-is;
-    // if filtering, we'll handle expansion in the filter effect below.
     if (!filterText.trim()) {
-      // Ensure at least roots are present in expanded set
       setExpanded((prev) => {
         const next = new Set([...prev].filter((id) => allIds.has(id)));
         if (next.size === 0) rootIds.forEach((id) => next.add(id));
@@ -141,11 +138,9 @@ export default function TreeView({
     const nowFiltering = !!q;
 
     if (nowFiltering && !wasFilteringRef.current) {
-      // entering filter
       wasFilteringRef.current = true;
       prevExpandedRef.current = new Set(expanded);
 
-      // Compute ancestors of matches
       const toExpand = new Set(rootIds);
       for (const id of allIds) {
         const n = nodeById.get(id);
@@ -162,12 +157,10 @@ export default function TreeView({
       }
       setExpanded(toExpand);
     } else if (!nowFiltering && wasFilteringRef.current) {
-      // leaving filter
       wasFilteringRef.current = false;
       const saved = prevExpandedRef.current || new Set();
       const restore = new Set();
       for (const id of saved) if (allIds.has(id)) restore.add(id);
-      // If nothing to restore, keep roots visible
       if (restore.size === 0) rootIds.forEach((id) => restore.add(id));
       setExpanded(restore);
       prevExpandedRef.current = null;
@@ -191,6 +184,13 @@ export default function TreeView({
       el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
   }, [activeId]);
+
+  // When the container receives focus (via Tab), move focus into the active row immediately.
+  const onContainerFocus = (e) => {
+    if (e.target !== containerRef.current) return;
+    const row = containerRef.current?.querySelector('li.tree-row[tabindex="0"]');
+    row?.focus();
+  };
 
   const onKeyDown = (e) => {
     if (!activeId) return;
@@ -266,6 +266,15 @@ export default function TreeView({
     }
   };
 
+  // Helper to expose aria-posinset / aria-setsize
+  const getSiblingMeta = (parentId, childId) => {
+    const siblings = parentId ? nodeById.get(parentId)?.children || [] : roots;
+    const setsize = siblings.length || undefined;
+    const ix = siblings.findIndex((s) => s && s.id === childId);
+    const posinset = ix >= 0 ? ix + 1 : undefined;
+    return { posinset, setsize };
+  };
+
   return (
     <div className={`tree-view${isFocused ? ' is-focused' : ''}${q ? ' has-filter' : ''}`}>
       <div
@@ -297,15 +306,17 @@ export default function TreeView({
         role="tree"
         aria-label="Family tree"
         tabIndex={0}
+        onFocus={onContainerFocus}
         onKeyDown={onKeyDown}
       >
-        <ul className="tree-root">
-          {visible.map(({ node, level }) => {
+        <ul className="tree-root" role="none">
+          {visible.map(({ node, level, parentId }) => {
             const hasChildren = node.children && node.children.length > 0;
             const isExpanded = expanded.has(node.id);
             const isActive = node.id === activeId;
             const isFocusedRow = focusedNodeId && node.id === focusedNodeId;
             const hit = matches(node.name);
+            const { posinset, setsize } = getSiblingMeta(parentId, node.id);
 
             return (
               <li
@@ -313,6 +324,8 @@ export default function TreeView({
                 role="treeitem"
                 aria-expanded={hasChildren ? isExpanded : undefined}
                 aria-level={level + 1}
+                aria-posinset={posinset}
+                aria-setsize={setsize}
                 aria-selected={isActive}
                 data-treeitem-id={node.id}
                 tabIndex={isActive ? 0 : -1}
