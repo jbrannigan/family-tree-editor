@@ -26,6 +26,19 @@ Open http://localhost:3000
 
 ---
 
+## Why?
+
+We had a legacy version of the Clan Family Tree trapped in an obsolete AutoCAD clone. The essential content was rescued as a file using tab indents to denote parent-child level. We wanted to keep that as a base level of communication due to its universality and being archival friendly. The first goal was to enable quality control of the text file through different visualizations.
+
+## Future Features
+
+- QC the text file for consistent representation of names, birth, death, marriage/divorced time and place.
+- Move the existing semantics to a JSON format which will then be expanded to any new semantics that are required.
+- Allow an "edit card" type of entry that exposes the JSON semantics
+- Preserve any new semantics in the same tabbed text file representation (export/import)
+- Improve visualization reflecting improved semantics
+- Export to GEDCOM for future custodians
+
 ## Using the app
 
 1. **Choose file** to load your tree text (or paste into the editor).
