@@ -5,7 +5,6 @@ export default function UploadButton({ onLoad, className }) {
   const inputRef = useRef(null);
 
   const openPicker = () => {
-    // Guard in case something steals focus or the ref isn't ready yet
     if (inputRef.current) inputRef.current.click();
   };
 

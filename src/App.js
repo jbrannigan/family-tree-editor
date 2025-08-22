@@ -4,7 +4,6 @@ import TreeEditor from './TreeEditor';
 import TreeView from './TreeView';
 import GraphView from './GraphView';
 import UploadButton from './UploadButton';
-// import DownloadButtons from "./DownloadButtons"; // (unused now)
 import { parseTree } from './utils/parseTree';
 import { generateHTML } from './utils/generateHTML';
 import './App.css';
@@ -15,13 +14,13 @@ const App = () => {
   const [focusedNode, setFocusedNode] = useState(null); // node object when focused
   const [exportFocused, setExportFocused] = useState(true);
   const [filter, setFilter] = useState('');
-  // Width of the left (editor) pane in pixels. Starts at 50%.
+
+  // Resizable split
   const containerRef = useRef(null);
-  const [leftWidth, setLeftWidth] = useState(0); // 0 means "compute 50% on mount"
+  const [leftWidth, setLeftWidth] = useState(0); // 0 => compute 50% on mount
   const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
-    // Initialize leftWidth to half of the container width on first render
     if (leftWidth === 0 && containerRef.current) {
       const w = containerRef.current.clientWidth;
       setLeftWidth(Math.round(w * 0.5));
@@ -32,7 +31,6 @@ const App = () => {
     const onMove = (e) => {
       if (!dragging || !containerRef.current) return;
       const bounds = containerRef.current.getBoundingClientRect();
-      // Clamp to [min, max] so panes can’t collapse or overlap
       const min = 220; // min editor width
       const max = bounds.width - 220; // min tree width
       const x = Math.min(max, Math.max(min, e.clientX - bounds.left));
@@ -133,8 +131,7 @@ const App = () => {
   };
 
   const handleDownloadSVG = () => {
-    // Assumes GraphView sets id="graph-svg" on the <svg>. No-op if not present.
-    const svgEl = document.getElementById('graph-svg');
+    const svgEl = document.getElementById('graph-svg'); // set by GraphView
     if (!svgEl) {
       console.warn('SVG element not found for download.');
       return;
@@ -156,7 +153,6 @@ const App = () => {
       <div className="topbar">
         <div className="topbar-left">
           <UploadButton className="btn btn-primary" onLoad={handleFileLoad} />
-
           <button className="btn" onClick={handleDownloadTXT} aria-label="Save edited text">
             Save edited text
           </button>
@@ -166,15 +162,12 @@ const App = () => {
           <button className="btn" onClick={handleDownloadHTML} aria-label="Download HTML">
             Download HTML
           </button>
-
           <button className="btn" onClick={handleDownloadSVG} aria-label="Download SVG">
             Download SVG
           </button>
-
           <button className="btn" onClick={handleDownloadJSON} aria-label="Download JSON">
             Download JSON
           </button>
-
           <label className="export-toggle" title="Export only the focused sub-tree">
             <input
               type="checkbox"
@@ -202,7 +195,6 @@ const App = () => {
           tabIndex={0}
           onMouseDown={() => setDragging(true)}
           onKeyDown={(e) => {
-            // keyboard nudges for accessibility
             if (e.key === 'ArrowLeft') setLeftWidth((w) => Math.max(220, w - 16));
             if (e.key === 'ArrowRight' && containerRef.current) {
               const max = containerRef.current.clientWidth - 220;
@@ -214,6 +206,7 @@ const App = () => {
         <div className="pane right-pane">
           <h3 style={{ marginTop: 0 }}>Tree View</h3>
           <p>Click on any of the 🔍 to focus on that part.</p>
+
           <div className="toolbar row wrap">
             <input
               className="input"
@@ -226,7 +219,7 @@ const App = () => {
           </div>
 
           <TreeView
-            tree={displayedTree}
+            tree={focusedNode ? [focusedNode] : treeData}
             onFocus={handleFocus}
             onUnfocus={handleUnfocus}
             focusedNodeId={focusedNode ? focusedNode.id : null}
@@ -238,7 +231,7 @@ const App = () => {
 
       {/* Bottom: SVG view */}
       <div style={{ marginTop: 16 }}>
-        <GraphView tree={displayedTree} />
+        <GraphView tree={focusedNode ? [focusedNode] : treeData} />
       </div>
     </div>
   );
