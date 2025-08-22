@@ -1,45 +1,89 @@
 // utils/parseTree.js
-// Parse tab-indented text into an array of root nodes.
-// - Tabs are the source of truth for indentation.
-// - Optionally normalize leading groups of 4 spaces into a single tab.
-// - Generates stable-ish ids for React keys and focus behavior.
+//
+// Robust indentation parser:
+// - Accepts tabs and spaces at line start
+// - 1 tab = 1 level; every 4 leading spaces = 1 level
+// - Empty/whitespace-only lines are ignored
+// - Falls back to "(unnamed)" when a line has no label
+// - Returns an array of root nodes: [{ id, name, children: [...] }, ...]
+//
+// Both named and default export provided for convenience.
 
-export function parseTree(text, { normalizeSpaces = true } = {}) {
-  const src = String(text || '');
-  const linesRaw = src.split('\n');
+let _idCounter = 0;
+const newId = () => `n-${_idCounter++}`;
 
-  const normalizeIndent = (line) => {
-    if (!normalizeSpaces) return line;
-    const m = line.match(/^[ \t]*/)?.[0] ?? '';
-    const tabs = m.replace(/ {4}/g, '\t').replace(/ +(?=\t)/g, '');
-    return tabs + line.slice(m.length);
-  };
+function normalize(text) {
+  if (!text) return '';
+  // Strip UTF-8 BOM, normalize newlines
+  const noBom = text.replace(/^\uFEFF/, '');
+  return noBom.replace(/\r\n?/g, '\n');
+}
 
-  const lines = linesRaw.map((l) => normalizeIndent(l)).filter((l) => l.trim() !== '');
-
-  const roots = [];
-  const stack = []; // { level, node }
-
-  let idSeq = 0;
-  const makeNode = (name) => ({ id: `n-${idSeq++}`, name, children: [] });
-
-  for (const line of lines) {
-    const m = line.match(/^(\t*)(.*)$/);
-    const level = (m?.[1] || '').length;
-    const name = (m?.[2] || '').trim();
-    const node = makeNode(name);
-
-    while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
-
-    if (stack.length === 0) {
-      roots.push(node);
-      stack.push({ level, node });
+function measureIndent(line) {
+  // Count leading tabs & spaces, compute "levels" (tabs + floor(spaces/4))
+  let i = 0;
+  let tabs = 0;
+  let spaces = 0;
+  while (i < line.length) {
+    const ch = line[i];
+    if (ch === '\t') {
+      tabs += 1;
+      i += 1;
       continue;
     }
-    const parent = stack[stack.length - 1].node;
-    parent.children.push(node);
-    stack.push({ level, node });
+    if (ch === ' ') {
+      // count contiguous spaces until a non-space
+      while (i < line.length && line[i] === ' ') {
+        spaces += 1;
+        i += 1;
+      }
+      break; // stop once non-space or end is hit
+    }
+    break;
+  }
+  const levels = tabs + Math.floor(spaces / 4);
+  return { levels, startIndex: i };
+}
+
+export function parseTree(text) {
+  _idCounter = 0; // reset per parse
+  const lines = normalize(text).split('\n');
+
+  const roots = [];
+  const stack = []; // stack[depth] = last node at that depth
+
+  for (const raw of lines) {
+    if (!raw || raw.trim() === '') continue;
+
+    const { levels: depth, startIndex } = measureIndent(raw);
+    // Remainder of the line is the label
+    const nameRaw = raw.slice(startIndex).trim();
+    const name = nameRaw || '(unnamed)';
+
+    const node = { id: newId(), name, children: [] };
+
+    if (depth <= 0) {
+      // New root
+      roots.push(node);
+      stack.length = 0;
+      stack[0] = node;
+    } else {
+      // Ensure stack is not deeper than current depth
+      if (stack.length > depth) stack.length = depth;
+      const parent = stack[depth - 1];
+      if (!parent) {
+        // Malformed indent (child without parent): treat as root
+        roots.push(node);
+        stack.length = 0;
+        stack[0] = node;
+      } else {
+        parent.children.push(node);
+        stack[depth] = node;
+      }
+    }
   }
 
   return roots;
 }
+
+export default parseTree;
