@@ -54,7 +54,7 @@ export default function TreeView({
   // Indexes for fast lookups
   const { allIds, nodeById, parentById, rootIds } = useMemo(() => buildIndexes(roots), [roots]);
 
-  // Expanded state; initialize with everything open (reasonable default)
+  // Expanded state
   const [expanded, setExpanded] = useState(() => new Set(allIds));
   useEffect(() => {
     if (!filterText.trim()) {
@@ -116,6 +116,7 @@ export default function TreeView({
     const s = (name || '').toLowerCase();
     return s.includes(q);
   };
+
   const renderName = (name) => {
     if (!q) return name || '(unnamed)';
     const raw = name || '(unnamed)';
@@ -131,9 +132,7 @@ export default function TreeView({
     );
   };
 
-  // SMART FILTER EXPANSION:
-  // When q becomes non-empty: save expansion, then expand only ancestors of matches (+roots)
-  // When q clears: restore previous expansion (intersecting current ids)
+  // SMART FILTER EXPANSION
   useEffect(() => {
     const nowFiltering = !!q;
 
@@ -176,12 +175,18 @@ export default function TreeView({
     }
   }, [q, visible, activeId]);
 
-  // Keep active row in view
+  // Keep active row in view *and* move real DOM focus to it (fixes E2E focus assertions)
   useEffect(() => {
     if (!activeId) return;
     const el = containerRef.current?.querySelector(`[data-treeitem-id="${activeId}"]`);
-    if (el && 'scrollIntoView' in el) {
-      el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    if (el) {
+      // ensure it’s tabbable and focused
+      el.setAttribute('tabindex', '0');
+      el.focus();
+      // keep it visible
+      if ('scrollIntoView' in el) {
+        el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
     }
   }, [activeId]);
 
@@ -238,14 +243,25 @@ export default function TreeView({
         }
         break;
       }
-      case 'Enter':
+      case 'Enter': {
+        // Enter activates Focus (zoom) on any item
+        e.preventDefault();
+        onFocus?.(node);
+        break;
+      }
       case ' ': {
+        // Space toggles expand/collapse (no focus here)
         if (hasChildren) {
           e.preventDefault();
           toggleNode(node.id);
-        } else if (onFocus) {
+        }
+        break;
+      }
+      case 'Escape': {
+        // Esc unfocuses if in focused mode
+        if (isFocused && onUnfocus) {
           e.preventDefault();
-          onFocus(node);
+          onUnfocus();
         }
         break;
       }
@@ -299,7 +315,9 @@ export default function TreeView({
           Unfocus
         </button>
       </div>
-
+      <p className="tree-hint" aria-live="polite">
+        Keys: ↑/↓ move • ←/→ collapse/expand • Space toggles • Enter focuses • Esc unfocuses
+      </p>
       <div
         ref={containerRef}
         className="tree-container"
@@ -369,7 +387,7 @@ export default function TreeView({
                 <button
                   type="button"
                   className="tree-focus-btn"
-                  title="Focus"
+                  title="Focus (Enter)"
                   aria-label={`Focus on ${node.name || 'unnamed node'}`}
                   onClick={(e) => {
                     e.stopPropagation();
