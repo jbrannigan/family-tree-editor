@@ -2,9 +2,9 @@ name: Pages
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -18,22 +18,18 @@ concurrency:
 
 jobs:
   build:
-    name: Build static site
+    name: Build site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install deps
         run: npm ci || npm i
-
       - name: Build
         run: npm run build
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -43,7 +39,7 @@ jobs:
     name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
-    # Deploy on PRs (preview) and on main (production)
+    # Deploy previews for PRs, and production for main
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     # 👇 This is what makes the PR “Deployments” panel appear with a link
@@ -51,27 +47,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    outputs:
-      page_url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - id: deployment
+      - name: Deploy
+        id: deployment
         uses: actions/deploy-pages@v4
-
-# Optional: comment the preview URL on the PR for convenience
-  comment-preview:
-    name: Comment preview link
-    if: github.event_name == 'pull_request'
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v7
         with:
-          script: |
-            const url = '${{ needs.deploy.outputs.page_url }}';
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              issue_number: context.payload.pull_request.number,
-              body: `🔎 Preview deployed: ${url}`
-            });
+          # true for PRs → preview; false for main → production
+          preview: ${{ github.event_name == 'pull_request' }}
