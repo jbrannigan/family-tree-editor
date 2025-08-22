@@ -2,8 +2,9 @@ name: Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -17,41 +18,60 @@ concurrency:
 
 jobs:
   build:
+    name: Build static site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
       - name: Install deps
         run: npm ci || npm i
+
       - name: Build
         run: npm run build
-      - name: Add 404.html for SPA routing
-        run: cp build/index.html build/404.html
-      - name: Upload artifact
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build
 
   deploy:
-    if: github.event_name != 'pull_request'
+    name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
+    # Deploy on PRs (preview) and on main (production)
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    # 👇 This is what makes the PR “Deployments” panel appear with a link
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
 
-  preview:
+# Optional: comment the preview URL on the PR for convenience
+  comment-preview:
+    name: Comment preview link
     if: github.event_name == 'pull_request'
-    needs: build
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/github-script@v7
         with:
-          preview: true
+          script: |
+            const url = '${{ needs.deploy.outputs.page_url }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              issue_number: context.payload.pull_request.number,
+              body: `🔎 Preview deployed: ${url}`
+            });
