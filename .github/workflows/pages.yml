@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -17,6 +18,7 @@ concurrency:
 
 jobs:
   build:
+    name: Build site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -28,30 +30,27 @@ jobs:
         run: npm ci || npm i
       - name: Build
         run: npm run build
-      - name: Add 404.html for SPA routing
-        run: cp build/index.html build/404.html
-      - name: Upload artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build
 
   deploy:
-    if: github.event_name != 'pull_request'
+    name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
+    # Deploy previews for PRs, and production for main
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    # 👇 This is what makes the PR “Deployments” panel appear with a link
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
 
-  preview:
-    if: github.event_name == 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
     steps:
-      - id: deployment
+      - name: Deploy
+        id: deployment
         uses: actions/deploy-pages@v4
         with:
-          preview: true
+          # true for PRs → preview; false for main → production
+          preview: ${{ github.event_name == 'pull_request' }}
