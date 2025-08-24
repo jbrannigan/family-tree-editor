@@ -1,14 +1,18 @@
+// TreeEditor.js
 import { useRef, useState } from 'react';
 import './TreeEditor.css';
 
-export default function TreeEditor({ treeText, onTextChange }) {
+export default function TreeEditor({ treeText = '', onTextChange = () => {} }) {
   const [softWrap, setSoftWrap] = useState(true);
   const gutterRef = useRef(null);
   const taRef = useRef(null);
 
   const NL = '\n';
 
-  const lineCount = Math.max(1, (treeText.match(/\n/g) || []).length + 1);
+  // Always work with a safe string
+  const safeText = typeof treeText === 'string' ? treeText : '';
+
+  const lineCount = Math.max(1, (safeText.match(/\n/g) || []).length + 1);
   const gutterLines = Array.from({ length: lineCount }, (_, i) => i + 1);
 
   const handleScroll = () => {
@@ -27,25 +31,26 @@ export default function TreeEditor({ treeText, onTextChange }) {
       })
       .join('\n');
 
+  const [cursorLine, setCursorLine] = useState(1);
+
   const updateCursorLine = () => {
     const ta = taRef.current;
     if (!ta) return;
     const pos = typeof ta.selectionStart === 'number' ? ta.selectionStart : 0;
-    const upto = treeText.slice(0, pos).split(NL).length;
+    const textNow = ta.value ?? '';
+    const upto = textNow.slice(0, pos).split(NL).length;
     setCursorLine(upto);
   };
-
-  const [cursorLine, setCursorLine] = useState(1);
 
   const handleKeyDown = (e) => {
     if (e.key !== 'Tab' || !taRef.current) return;
     e.preventDefault();
 
     const ta = taRef.current;
-    const selStart = ta.selectionStart;
-    const selEnd = ta.selectionEnd;
+    const selStart = ta.selectionStart ?? 0;
+    const selEnd = ta.selectionEnd ?? 0;
 
-    const text = treeText;
+    const text = ta.value ?? '';
     const lineStart = text.lastIndexOf(NL, selStart - 1) + 1;
     const lineEnd = text.indexOf(NL, selEnd);
     const sliceEnd = lineEnd === -1 ? text.length : lineEnd;
@@ -89,7 +94,9 @@ export default function TreeEditor({ treeText, onTextChange }) {
           type="button"
           className="btn"
           onClick={() => {
-            onTextChange(normalizeTextIndentation(treeText));
+            const ta = taRef.current;
+            const textNow = ta?.value ?? safeText;
+            onTextChange(normalizeTextIndentation(textNow));
             requestAnimationFrame(() => taRef.current?.focus());
           }}
           aria-label="Normalize indentation"
@@ -112,7 +119,7 @@ export default function TreeEditor({ treeText, onTextChange }) {
           ref={taRef}
           className={`te-textarea ${softWrap ? 'wrap' : 'nowrap'}`}
           aria-label="Family tree text editor"
-          value={treeText}
+          value={safeText}
           onChange={(e) => onTextChange(e.target.value)}
           onScroll={handleScroll}
           onClick={updateCursorLine}

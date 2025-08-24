@@ -1,46 +1,72 @@
 // eslint.config.mjs
 import js from '@eslint/js';
-import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
-import globals from 'globals';
+import react from 'eslint-plugin-react';
 
 export default [
-  // Do not lint bundles, deps, or reports
-  { ignores: ['node_modules/**', 'build/**', 'playwright-report/**'] },
-
-  // Base JS rules
-  js.configs.recommended,
-
-  // App source: JSX + browser globals
+  // Ignore stuff that shouldn't be linted
   {
-    files: ['src/**/*.{js,jsx}'],
-    plugins: { react, 'react-hooks': reactHooks },
-    languageOptions: {
-      ecmaVersion: 2023,
-      sourceType: 'module',
-      parserOptions: { ecmaFeatures: { jsx: true } },
-      globals: { ...globals.browser },
-    },
-    settings: { react: { version: 'detect' } },
-    rules: {
-      // React
-      'react/jsx-uses-vars': 'error',
-      'react/react-in-jsx-scope': 'off',
-      'react/prop-types': 'off',
-
-      // React Hooks
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-    },
+    ignores: ['node_modules', 'build', 'dist', 'coverage', 'playwright-report'],
   },
 
-  // Config files (Node env)
+  // App/JSX defaults
   {
-    files: ['playwright.config.*', 'vitest.config.*', 'vite.config.*', 'eslint.config.*'],
     languageOptions: {
-      ecmaVersion: 2023,
+      ecmaVersion: 2022,
       sourceType: 'module',
-      globals: { ...globals.node },
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      // Browser + test globals you use
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        console: 'readonly',
+        localStorage: 'readonly',
+        setTimeout: 'readonly',
+        requestAnimationFrame: 'readonly',
+        Blob: 'readonly',
+        URL: 'readonly',
+        alert: 'readonly',
+        XMLSerializer: 'readonly',
+        // vitest
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        vi: 'readonly',
+      },
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+      react, // enables react/* rules
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      // keep your underscore convention
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+
+      // hooks
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+
+      // THIS is what makes <TreeEditor /> count as “used”
+      'react/jsx-uses-vars': 'error',
+      // No need for React in scope with the new JSX transform
+      'react/react-in-jsx-scope': 'off',
+    },
+    settings: { react: { version: 'detect' } },
+  },
+
+  // Playwright config is CommonJS
+  {
+    files: ['playwright.config.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', module: 'readonly', process: 'readonly' },
     },
   },
 ];

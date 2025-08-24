@@ -1,5 +1,5 @@
 // TreeView.js
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import './TreeView.css';
 
 function ensureArray(tree) {
@@ -111,11 +111,14 @@ export default function TreeView({
   };
 
   // Filter helpers (highlight/dim)
-  const matches = (name) => {
-    if (!q) return true;
-    const s = (name || '').toLowerCase();
-    return s.includes(q);
-  };
+  const matches = useCallback(
+    (name) => {
+      if (!q) return true;
+      const s = (name || '').toLowerCase();
+      return s.includes(q);
+    },
+    [q],
+  );
 
   const renderName = (name) => {
     if (!q) return name || '(unnamed)';
@@ -164,7 +167,7 @@ export default function TreeView({
       setExpanded(restore);
       prevExpandedRef.current = null;
     }
-  }, [q, allIds, nodeById, parentById, rootIds, expanded]);
+  }, [q, matches, allIds, nodeById, parentById, rootIds, expanded]);
 
   // When starting a filter, move focus to the first visible match
   useEffect(() => {
@@ -173,7 +176,7 @@ export default function TreeView({
     if (firstMatch && firstMatch.node.id !== activeId) {
       setActiveId(firstMatch.node.id);
     }
-  }, [q, visible, activeId]);
+  }, [q, matches, visible, activeId]);
 
   // Keep active row in view *and* move real DOM focus to it (fixes E2E focus assertions)
   useEffect(() => {

@@ -1,5 +1,5 @@
 // App.js
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import TreeEditor from './TreeEditor';
 import TreeView from './TreeView';
 import GraphView from './GraphView';
@@ -8,233 +8,280 @@ import { parseTree } from './utils/parseTree';
 import { generateHTML } from './utils/generateHTML';
 import './App.css';
 
-const App = () => {
+const LS_TEXT = 'fte:lastTreeText';
+const LS_REMEMBER = 'fte:rememberUpload';
+
+function nowStamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(
+    d.getHours(),
+  )}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+}
+
+export default function App() {
+  // Top bar state
+  const [rememberUpload, setRememberUpload] = useState(true);
+  const [exportFocused, setExportFocused] = useState(false);
+
+  // Editor / data state
   const [treeText, setTreeText] = useState('');
-  const [treeData, setTreeData] = useState([]); // full parsed tree (array)
-  const [focusedNode, setFocusedNode] = useState(null); // node object when focused
-  const [exportFocused, setExportFocused] = useState(true);
-  const [filter, setFilter] = useState('');
+  // eslint-disable-next-line no-unused-vars
+  const [fileName, setFileName] = useState('family-tree.txt');
+  const fileHandleRef = useRef(null); // for showSaveFilePicker
 
-  // Resizable split
-  const containerRef = useRef(null);
-  const [leftWidth, setLeftWidth] = useState(0); // 0 => compute 50% on mount
-  const [dragging, setDragging] = useState(false);
-
+  // Restore remember flag + last text once on mount
   useEffect(() => {
-    if (leftWidth === 0 && containerRef.current) {
-      const w = containerRef.current.clientWidth;
-      setLeftWidth(Math.round(w * 0.5));
+    const savedRemember = localStorage.getItem(LS_REMEMBER);
+    setRememberUpload(savedRemember === null ? true : savedRemember === 'true');
+
+    const savedText = localStorage.getItem(LS_TEXT);
+    if (savedText != null) setTreeText(savedText);
+  }, []);
+
+  // Keep localStorage in sync (if enabled)
+  useEffect(() => {
+    localStorage.setItem(LS_REMEMBER, String(rememberUpload));
+    if (rememberUpload) {
+      localStorage.setItem(LS_TEXT, treeText ?? '');
+    } else {
+      localStorage.removeItem(LS_TEXT);
     }
-  }, [leftWidth]);
+  }, [rememberUpload, treeText]);
 
-  useEffect(() => {
-    const onMove = (e) => {
-      if (!dragging || !containerRef.current) return;
-      const bounds = containerRef.current.getBoundingClientRect();
-      const min = 220; // min editor width
-      const max = bounds.width - 220; // min tree width
-      const x = Math.min(max, Math.max(min, e.clientX - bounds.left));
-      setLeftWidth(x);
-    };
-    const onUp = () => setDragging(false);
-
-    if (dragging) {
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-  }, [dragging]);
-
-  // Parse text -> tree
-  useEffect(() => {
+  // Parse into tree model
+  const fullTree = useMemo(() => {
     try {
-      const parsed = parseTree(treeText) || [];
-      setTreeData(parsed);
-    } catch (err) {
-      console.error('Error parsing tree:', err);
-      setTreeData([]);
+      return parseTree(treeText || '');
+    } catch (e) {
+      console.error('Parse error:', e);
+      return [];
     }
   }, [treeText]);
 
-  // Helper: returns like "-05AUG2025-2310"
-  const tsSuffix = () => {
-    const d = new Date();
-    const dd = String(d.getDate()).padStart(2, '0');
-    const months = [
-      'JAN',
-      'FEB',
-      'MAR',
-      'APR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AUG',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DEC',
-    ];
-    const mmm = months[d.getMonth()];
-    const yyyy = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    return `-${dd}${mmm}${yyyy}-${hh}${mm}`;
-  };
-
-  // File + editor handlers
-  const handleFileLoad = (text) => setTreeText(text);
-  const handleTextChange = (text) => setTreeText(text);
-
-  // Focus handlers
-  const handleFocus = (node) => setFocusedNode(node);
+  // Focus handling (for Unfocus + export focused)
+  const [focusedNode, setFocusedNode] = useState(null);
+  const isFocused = Boolean(focusedNode);
+  const displayedTree = isFocused ? [focusedNode] : fullTree;
   const handleUnfocus = () => setFocusedNode(null);
 
-  // What to render (focused sub-tree vs full tree)
-  const displayedTree = focusedNode ? [focusedNode] : treeData;
+  // Enable/disable export buttons
+  const hasExport = exportFocused
+    ? Boolean(focusedNode)
+    : Array.isArray(displayedTree) && displayedTree.length > 0;
 
-  // Downloads
+  // Editor text change
+  const handleTextChange = (next) => setTreeText(next);
+
+  // After file open
+  // eslint-disable-next-line no-unused-vars
+  const handleFileLoaded = async ({ text, name, handle }) => {
+    setTreeText(text ?? '');
+    if (name) setFileName(name);
+    fileHandleRef.current = handle || null;
+    if (rememberUpload) localStorage.setItem(LS_TEXT, text ?? '');
+  };
+
+  //  Save Edited Text — prefer system dialog; if user cancels, do nothing.
+  //  Fall back to timestamped download only on non-cancel errors or when picker is unavailable.
+  // eslint-disable-next-line no-unused-vars
+  const handleSaveEdited = async () => {
+    const base = (fileName && fileName.replace(/\.(txt|text|md|json|html)$/i, '')) || 'family-tree';
+    const defaultTxt = `${base}-${nowStamp()}.txt`;
+
+    const doDownload = () => {
+      const blob = new Blob([treeText ?? ''], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = defaultTxt;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    };
+
+    try {
+      if ('showSaveFilePicker' in window) {
+        const handle =
+          fileHandleRef.current ||
+          (await window.showSaveFilePicker({
+            suggestedName: defaultTxt,
+            types: [{ description: 'Plain text', accept: { 'text/plain': ['.txt'] } }],
+          }));
+
+        const writable = await handle.createWritable();
+        await writable.write(treeText ?? '');
+        await writable.close();
+
+        fileHandleRef.current = handle;
+        try {
+          const fhName = handle.name || defaultTxt;
+          setFileName(fhName);
+        } catch {
+          /* no-op */
+        }
+        return;
+      }
+      // No picker support → download
+      doDownload();
+    } catch (err) {
+      // If user canceled the picker, just return silently.
+      if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) return;
+      console.warn('Save via picker failed, falling back to download:', err);
+      doDownload();
+    }
+  };
+
+  // Generic download helper
+  const downloadAs = (ext, content, mime) => {
+    const base = (fileName || 'family-tree').replace(/\.[^.]+$/, '');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.download = `${base}-${nowStamp()}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // Choose which tree to export based on "Export focused view"
+  const exportTree = exportFocused ? displayedTree : fullTree;
+
   const handleDownloadHTML = () => {
-    const usedTree = exportFocused ? displayedTree : treeData;
-    const html = generateHTML(usedTree);
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `family_tree${tsSuffix()}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const html = generateHTML(exportTree);
+    downloadAs('html', html, 'text/html');
   };
-
-  const handleDownloadTXT = () => {
-    const blob = new Blob([treeText ?? ''], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `family_tree_text${tsSuffix()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const handleDownloadJSON = () => {
-    const usedTree = exportFocused ? displayedTree : treeData;
-    const json = JSON.stringify(usedTree, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `family_tree${tsSuffix()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadAs('json', JSON.stringify(exportTree, null, 2), 'application/json');
   };
+  const handleDownloadTXT = () => {
+    downloadAs('txt', treeText ?? '', 'text/plain');
+  };
+
+  const graphHostRef = useRef(null);
 
   const handleDownloadSVG = () => {
-    const svgEl = document.getElementById('graph-svg'); // set by GraphView
-    if (!svgEl) {
-      console.warn('SVG element not found for download.');
+    // Find the SVG drawn by GraphView
+    const host = graphHostRef.current;
+    const svg =
+      host?.querySelector('svg') || document.querySelector('#graph-view svg, .graph-view svg, svg');
+
+    if (!svg) {
+      alert('No SVG diagram found.');
       return;
     }
-    const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(svgEl);
-    const blob = new Blob([source], { type: 'image/svg+xml' });
+    const clone = svg.cloneNode(true);
+    if (!clone.getAttribute('xmlns')) {
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+
+    const xml =
+      `<?xml version="1.0" encoding="UTF-8"?>\n` + new XMLSerializer().serializeToString(clone);
+
+    const blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
     const a = document.createElement('a');
     a.href = url;
-    a.download = `family_tree${tsSuffix()}.svg`;
+    a.download = `tree-diagram-${stamp}.svg`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 0);
   };
 
   return (
-    <div className="app-container" style={{ padding: '1rem' }}>
+    <div className="app">
       {/* Top toolbar */}
-      <div className="topbar">
-        <div className="topbar-left">
-          <UploadButton className="btn btn-primary" onLoad={handleFileLoad} />
-          <button className="btn" onClick={handleDownloadTXT} aria-label="Save edited text">
+      <div
+        className="top-toolbar"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+          marginBottom: 12,
+        }}
+      >
+        {/* LEFT: file/open/save */}
+        <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <UploadButton onLoaded={handleFileLoaded} />
+
+          <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              checked={rememberUpload}
+              onChange={(e) => setRememberUpload(e.target.checked)}
+            />
+            Remember last upload
+          </label>
+
+          <button className="btn" onClick={handleSaveEdited}>
             Save edited text
           </button>
         </div>
 
-        <div className="topbar-right">
-          <button className="btn" onClick={handleDownloadHTML} aria-label="Download HTML">
-            Download HTML
-          </button>
-          <button className="btn" onClick={handleDownloadSVG} aria-label="Download SVG">
-            Download SVG
-          </button>
-          <button className="btn" onClick={handleDownloadJSON} aria-label="Download JSON">
-            Download JSON
-          </button>
-          <label className="export-toggle" title="Export only the focused sub-tree">
+        {/* RIGHT: export + downloads */}
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'inline-flex',
+            gap: 8,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
             <input
               type="checkbox"
               checked={exportFocused}
               onChange={(e) => setExportFocused(e.target.checked)}
-              aria-label="Export focused view"
             />
             Export focused view
           </label>
+
+          <button className="btn" onClick={handleDownloadHTML} disabled={!hasExport}>
+            Download HTML
+          </button>
+          <button className="btn" onClick={handleDownloadJSON} disabled={!hasExport}>
+            Download JSON
+          </button>
+          <button className="btn" onClick={handleDownloadTXT} disabled={!hasExport}>
+            Download TXT
+          </button>
+          <button className="btn" onClick={handleDownloadSVG} disabled={!hasExport}>
+            Download SVG
+          </button>
         </div>
       </div>
 
-      {/* Split: editor + tree with resizer */}
-      <div className="split" ref={containerRef} style={{ minHeight: 300 }}>
-        <div className="pane left-pane" style={{ width: leftWidth || '50%' }}>
-          <h3 style={{ marginTop: 0 }}>Tree Text Editor</h3>
-          <TreeEditor treeText={treeText} onTextChange={handleTextChange} />
-        </div>
+      {/* Editor */}
+      <div className="pane left-pane">
+        <h3 style={{ marginTop: 0 }}>Tree Text Editor</h3>
+        <TreeEditor treeText={treeText} onTextChange={handleTextChange} />
+      </div>
 
-        <div
-          className={`resizer ${dragging ? 'dragging' : ''}`}
-          role="separator"
-          aria-label="Resize editor and tree panes"
-          aria-orientation="vertical"
-          tabIndex={0}
-          onMouseDown={() => setDragging(true)}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') setLeftWidth((w) => Math.max(220, w - 16));
-            if (e.key === 'ArrowRight' && containerRef.current) {
-              const max = containerRef.current.clientWidth - 220;
-              setLeftWidth((w) => Math.min(max, w + 16));
-            }
-          }}
+      {/* Tree View */}
+      <div className="pane right-pane">
+        <h3 style={{ marginTop: 0 }}>Tree View</h3>
+
+        <TreeView
+          tree={displayedTree}
+          onFocus={(node) => setFocusedNode(node)}
+          onUnfocus={handleUnfocus}
+          focusedNodeId={focusedNode ? focusedNode.id : null}
+          isFocused={isFocused}
         />
-
-        <div className="pane right-pane">
-          <h3 style={{ marginTop: 0 }}>Tree View</h3>
-          <p>Click on any of the 🔍 to focus on that part.</p>
-
-          <div className="toolbar row wrap">
-            <input
-              className="input"
-              placeholder="Filter names…"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              aria-label="Filter tree by name"
-              style={{ maxWidth: 220 }}
-            />
-          </div>
-
-          <TreeView
-            tree={focusedNode ? [focusedNode] : treeData}
-            onFocus={handleFocus}
-            onUnfocus={handleUnfocus}
-            focusedNodeId={focusedNode ? focusedNode.id : null}
-            isFocused={!!focusedNode}
-            filterText={filter}
-          />
-        </div>
       </div>
 
-      {/* Bottom: SVG view */}
-      <div style={{ marginTop: 16 }}>
-        <GraphView tree={focusedNode ? [focusedNode] : treeData} />
+      {/* Graph */}
+      <div className="pane">
+        <h3>Graph View</h3>
+        <GraphView tree={displayedTree} />
       </div>
     </div>
   );
-};
-
-export default App;
+}
