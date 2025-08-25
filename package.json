@@ -15,7 +15,7 @@
     "lint:fix": "eslint . --fix",
     "test:unit": "vitest run --reporter=dot",
     "test:e2e": "playwright test",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "react": "^18.3.1",
