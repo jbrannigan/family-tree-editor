@@ -61,5 +61,11 @@
     "*.{md,yml,yaml}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "resolve-url-loader": "^5.0.0",
+    "react-scripts": {
+      "resolve-url-loader": "^5.0.0"
+    }
   }
 }
