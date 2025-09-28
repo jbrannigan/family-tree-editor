@@ -64,8 +64,8 @@ importers:
         specifier: ^1.55.0
         version: 1.55.0
       playwright-core:
-        specifier: ^1.55.0
-        version: 1.55.0
+        specifier: ^1.55.1
+        version: 1.55.1
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
