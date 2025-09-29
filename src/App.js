@@ -6,6 +6,7 @@ import GraphView from './GraphView';
 import UploadButton from './UploadButton';
 import { parseTree } from './utils/parseTree';
 import { generateHTML } from './utils/generateHTML';
+import { buildPedigreeTree } from './utils/buildPedigree';
 import './App.css';
 
 const LS_TEXT = 'fte:lastTreeText';
@@ -23,6 +24,7 @@ export default function App() {
   // Top bar state
   const [rememberUpload, setRememberUpload] = useState(true);
   const [exportFocused, setExportFocused] = useState(false);
+  const [showPedigree, setShowPedigree] = useState(false);
 
   // Editor / data state
   const [treeText, setTreeText] = useState('');
@@ -63,6 +65,11 @@ export default function App() {
   const [focusedNode, setFocusedNode] = useState(null);
   const isFocused = Boolean(focusedNode);
   const displayedTree = isFocused ? [focusedNode] : fullTree;
+  const pedigreeTree = useMemo(() => {
+    if (!showPedigree || !focusedNode) return null;
+    const pedigree = buildPedigreeTree(fullTree, focusedNode.id);
+    return pedigree && pedigree.length > 0 ? pedigree : null;
+  }, [showPedigree, focusedNode, fullTree]);
   const handleUnfocus = () => setFocusedNode(null);
 
   // Enable/disable export buttons
@@ -145,6 +152,7 @@ export default function App() {
   };
 
   // Choose which tree to export based on "Export focused view"
+  const graphTree = pedigreeTree || displayedTree;
   const exportTree = exportFocused ? displayedTree : fullTree;
 
   const handleDownloadHTML = () => {
@@ -280,7 +288,18 @@ export default function App() {
       {/* Graph */}
       <div className="pane">
         <h3>Graph View</h3>
-        <GraphView tree={displayedTree} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              checked={showPedigree}
+              onChange={(e) => setShowPedigree(e.target.checked)}
+              disabled={!focusedNode}
+            />
+            Show pedigree when focused
+          </label>
+        </div>
+        <GraphView tree={graphTree} />
       </div>
     </div>
   );
