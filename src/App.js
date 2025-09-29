@@ -7,6 +7,7 @@ import UploadButton from './UploadButton';
 import { parseTree } from './utils/parseTree';
 import { generateHTML } from './utils/generateHTML';
 import { buildPedigreeTree } from './utils/buildPedigree';
+import { treeToText } from './utils/treeToText';
 import './App.css';
 
 const LS_TEXT = 'fte:lastTreeText';
@@ -70,12 +71,14 @@ export default function App() {
     const pedigree = buildPedigreeTree(fullTree, focusedNode.id);
     return pedigree && pedigree.length > 0 ? pedigree : null;
   }, [showPedigree, focusedNode, fullTree]);
+  const focusExportTree = useMemo(() => {
+    if (!focusedNode) return null;
+    if (showPedigree && Array.isArray(pedigreeTree) && pedigreeTree.length > 0) {
+      return pedigreeTree;
+    }
+    return [focusedNode];
+  }, [focusedNode, showPedigree, pedigreeTree]);
   const handleUnfocus = () => setFocusedNode(null);
-
-  // Enable/disable export buttons
-  const hasExport = exportFocused
-    ? Boolean(focusedNode)
-    : Array.isArray(displayedTree) && displayedTree.length > 0;
 
   // Editor text change
   const handleTextChange = (next) => setTreeText(next);
@@ -152,18 +155,31 @@ export default function App() {
   };
 
   // Choose which tree to export based on "Export focused view"
-  const graphTree = pedigreeTree || displayedTree;
-  const exportTree = exportFocused ? displayedTree : fullTree;
+  const graphTree = focusExportTree || displayedTree;
+  const hasFocusedExport = Array.isArray(focusExportTree) && focusExportTree.length > 0;
+  const shouldExportFocusedTree =
+    hasFocusedExport && (exportFocused || (isFocused && showPedigree));
+  const exportTree = shouldExportFocusedTree ? focusExportTree : fullTree;
+  const hasExport = shouldExportFocusedTree
+    ? true
+    : exportFocused
+      ? false
+      : Array.isArray(fullTree) && fullTree.length > 0;
 
   const handleDownloadHTML = () => {
-    const html = generateHTML(exportTree);
+    const html = generateHTML(exportTree ?? []);
     downloadAs('html', html, 'text/html');
   };
   const handleDownloadJSON = () => {
-    downloadAs('json', JSON.stringify(exportTree, null, 2), 'application/json');
+    const data = exportTree ?? [];
+    downloadAs('json', JSON.stringify(data, null, 2), 'application/json');
   };
   const handleDownloadTXT = () => {
-    downloadAs('txt', treeText ?? '', 'text/plain');
+    const content =
+      shouldExportFocusedTree && Array.isArray(focusExportTree)
+        ? treeToText(focusExportTree)
+        : (treeText ?? '');
+    downloadAs('txt', content, 'text/plain');
   };
 
   const graphHostRef = useRef(null);
