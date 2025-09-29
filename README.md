@@ -5,7 +5,7 @@
 
 # Family Tree Editor
 
-A lightweight web app for editing a plain‑text family tree and viewing it as an interactive tree and SVG diagram. You can **focus** on a sub‑tree (🔍), **unfocus** to restore the full view, and **export** HTML / SVG / JSON (optionally just the focused view). You can filter the tree to find instances of a string.
+A lightweight web app for editing a plain‑text family tree and viewing it as an interactive tree and SVG diagram. You can **focus** on a sub‑tree (🔍), surface a **pedigree lineage** for the focused person, **unfocus** to restore the full view, and **export** HTML / SVG / JSON (optionally just the focused or pedigree view). You can filter the tree to find instances of a string.
 
 ---
 
@@ -47,6 +47,7 @@ We had a legacy version of the Clan Family Tree trapped in an obsolete AutoCAD c
 3. The **Tree View** (right pane) updates live and provides keyboard navigation.
 4. Click 🔍 to **focus** on any node. Click **Unfocus** in the Tree View toolbar to restore.
 5. Turn on **Export focused view** (top‑right) to export only the focused sub‑tree.
+6. While a focus is active, enable **Show pedigree when focused** (Graph View) to display and export just that lineage.
 
 ---
 
@@ -65,11 +66,11 @@ Accessibility: the tree uses `role="tree"` / `role="treeitem"`, roving `tabIndex
 ## Exports & downloads
 
 - **Save edited text** — downloads the current editor text as `.txt`
-- **Download HTML** — static interactive page (collapsible tree)
+- **Download HTML** — static interactive page (collapsible tree or pedigree)
 - **Download SVG** — the graph view as raw SVG
 - **Download JSON** — the current tree data
 
-> Tip: check **Export focused view** to export only the currently focused sub‑tree.
+> Tip: check **Export focused view** to export only the currently focused sub‑tree, and pair it with **Show pedigree when focused** to export the lineage instead of the entire branch.
 
 ---
 
