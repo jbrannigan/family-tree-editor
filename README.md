@@ -70,9 +70,9 @@ Accessibility: the tree uses `role="tree"` / `role="treeitem"`, roving `tabIndex
 - **Download SVG** — the graph view as raw SVG
 - **Download JSON** — the current tree data
 
-> Tip: check **Export focused view** to export only the currently focused sub‑tree, and pair it with **Show pedigree when focused** to export the lineage instead of the entire branch.
+> Tip: check **Export focused view** to export only the currently focused sub‑tree, and pair it with **Show pedigree when focused** to 
+> export the lineage instead of the entire branch. Downloads automatically honor an active pedigree view: once you toggle **Show pedigree when focused**, the HTML, JSON, and TXT exports will capture that lineage even if you leave **Export focused view** unchecked.
 
-Downloads automatically honor an active pedigree view: once you toggle **Show pedigree when focused**, the HTML, JSON, and TXT exports will capture that lineage even if you leave **Export focused view** unchecked.
 
 ---
 

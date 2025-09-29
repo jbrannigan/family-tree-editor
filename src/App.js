@@ -80,6 +80,11 @@ export default function App() {
   }, [focusedNode, showPedigree, pedigreeTree]);
   const handleUnfocus = () => setFocusedNode(null);
 
+  // Enable/disable export buttons
+  const hasExport = exportFocused
+    ? Array.isArray(focusExportTree) && focusExportTree.length > 0
+    : Array.isArray(fullTree) && fullTree.length > 0;
+
   // Editor text change
   const handleTextChange = (next) => setTreeText(next);
 
@@ -165,7 +170,7 @@ export default function App() {
     : exportFocused
       ? false
       : Array.isArray(fullTree) && fullTree.length > 0;
-
+  const exportTree = exportFocused ? focusExportTree : fullTree;
   const handleDownloadHTML = () => {
     const html = generateHTML(exportTree ?? []);
     downloadAs('html', html, 'text/html');
@@ -175,8 +180,8 @@ export default function App() {
     downloadAs('json', JSON.stringify(data, null, 2), 'application/json');
   };
   const handleDownloadTXT = () => {
-    const content =
-      shouldExportFocusedTree && Array.isArray(focusExportTree)
+    const content = shouldExportFocusedTree && Array.isArray(focusExportTree)
+      exportFocused && Array.isArray(focusExportTree)
         ? treeToText(focusExportTree)
         : (treeText ?? '');
     downloadAs('txt', content, 'text/plain');
