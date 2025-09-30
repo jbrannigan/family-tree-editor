@@ -32,6 +32,7 @@ export default function App() {
   // eslint-disable-next-line no-unused-vars
   const [fileName, setFileName] = useState('family-tree.txt');
   const fileHandleRef = useRef(null); // for showSaveFilePicker
+  const [activeTab, setActiveTab] = useState('editor');
 
   // Restore remember flag + last text once on mount
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function App() {
   const handleUnfocus = () => setFocusedNode(null);
 
   // Enable/disable export buttons
-  const hasExport = exportFocused
+  const canExport = exportFocused
     ? Array.isArray(focusExportTree) && focusExportTree.length > 0
     : Array.isArray(fullTree) && fullTree.length > 0;
 
@@ -189,6 +190,12 @@ export default function App() {
 
   const graphHostRef = useRef(null);
 
+  const tabs = [
+    { id: 'editor', label: 'Tree Text Editor' },
+    { id: 'tree', label: 'Tree View' },
+    { id: 'graph', label: 'Graph View' },
+  ];
+
   const handleDownloadSVG = () => {
     // Find the SVG drawn by GraphView
     const host = graphHostRef.current;
@@ -235,25 +242,6 @@ export default function App() {
           marginBottom: 12,
         }}
       >
-        {/* LEFT: file/open/save */}
-        <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <UploadButton onLoaded={handleFileLoaded} />
-
-          <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-            <input
-              type="checkbox"
-              checked={rememberUpload}
-              onChange={(e) => setRememberUpload(e.target.checked)}
-            />
-            Remember last upload
-          </label>
-
-          <button className="btn" onClick={handleSaveEdited}>
-            Save edited text
-          </button>
-        </div>
-
-        {/* RIGHT: export + downloads */}
         <div
           style={{
             marginLeft: 'auto',
@@ -272,55 +260,88 @@ export default function App() {
             Export focused view
           </label>
 
-          <button className="btn" onClick={handleDownloadHTML} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadHTML} disabled={!canExport}>
             Download HTML
           </button>
-          <button className="btn" onClick={handleDownloadJSON} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadJSON} disabled={!canExport}>
             Download JSON
           </button>
-          <button className="btn" onClick={handleDownloadTXT} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadTXT} disabled={!canExport}>
             Download TXT
           </button>
-          <button className="btn" onClick={handleDownloadSVG} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadSVG} disabled={!canExport}>
             Download SVG
           </button>
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="pane left-pane">
-        <h3 style={{ marginTop: 0 }}>Tree Text Editor</h3>
-        <TreeEditor treeText={treeText} onTextChange={handleTextChange} />
+      <div className="tab-bar">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`tab-button${activeTab === tab.id ? ' active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Tree View */}
-      <div className="pane right-pane">
-        <h3 style={{ marginTop: 0 }}>Tree View</h3>
+      <div className="tab-panel">
+        {activeTab === 'editor' && (
+          <div className="pane">
+            <div className="pane-header">
+              <h3 style={{ marginTop: 0 }}>Tree Text Editor</h3>
+              <div className="pane-actions">
+                <UploadButton onLoaded={handleFileLoaded} />
+                <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberUpload}
+                    onChange={(e) => setRememberUpload(e.target.checked)}
+                  />
+                  Remember last upload
+                </label>
+                <button className="btn" onClick={handleSaveEdited}>
+                  Save edited text
+                </button>
+              </div>
+            </div>
+            <TreeEditor treeText={treeText} onTextChange={handleTextChange} />
+          </div>
+        )}
 
-        <TreeView
-          tree={displayedTree}
-          onFocus={(node) => setFocusedNode(node)}
-          onUnfocus={handleUnfocus}
-          focusedNodeId={focusedNode ? focusedNode.id : null}
-          isFocused={isFocused}
-        />
-      </div>
-
-      {/* Graph */}
-      <div className="pane">
-        <h3>Graph View</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-            <input
-              type="checkbox"
-              checked={showPedigree}
-              onChange={(e) => setShowPedigree(e.target.checked)}
-              disabled={!focusedNode}
+        {activeTab === 'tree' && (
+          <div className="pane">
+            <h3 style={{ marginTop: 0 }}>Tree View</h3>
+            <TreeView
+              tree={displayedTree}
+              onFocus={(node) => setFocusedNode(node)}
+              onUnfocus={handleUnfocus}
+              focusedNodeId={focusedNode ? focusedNode.id : null}
+              isFocused={isFocused}
             />
-            Show pedigree when focused
-          </label>
-        </div>
-        <GraphView tree={graphTree} />
+          </div>
+        )}
+
+        {activeTab === 'graph' && (
+          <div className="pane" ref={graphHostRef}>
+            <h3>Graph View</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={showPedigree}
+                  onChange={(e) => setShowPedigree(e.target.checked)}
+                  disabled={!focusedNode}
+                />
+                Show pedigree when focused
+              </label>
+            </div>
+            <GraphView tree={graphTree} />
+          </div>
+        )}
       </div>
     </div>
   );
