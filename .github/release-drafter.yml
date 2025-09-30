@@ -48,8 +48,8 @@ prerelease: false
 prerelease-identifier: ''
 include-pre-releases: false
 latest: 'true'     # MUST be a string
-filter-by-commitish: false
-commitish: ''
+filter-by-commitish: true
+commitish: 'main'
 pull-request-limit: 50
 category-template: '## $TITLE'
 header: ''
