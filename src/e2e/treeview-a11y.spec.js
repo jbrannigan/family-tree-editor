@@ -13,6 +13,9 @@ test('TreeView moves focus with Arrow keys', async ({ page }) => {
     .or(page.locator('textarea'));
   await editor.fill(sample);
 
+  // Switch to Tree View tab
+  await page.getByRole('button', { name: 'Tree View' }).click();
+
   // Wait for at least one treeitem to appear
   const items = page.getByRole('treeitem');
   await expect(items.first()).toBeVisible();
