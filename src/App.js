@@ -281,7 +281,6 @@ export default function App() {
             Export focused view
           </label>
 
-
           <button
             className="btn"
             onClick={handleDownloadHTML}
@@ -312,16 +311,6 @@ export default function App() {
             disabled={!canExport}
             aria-label={canExport ? 'Download SVG' : 'Download SVG (no data available)'}
           >
-          <button className="btn" onClick={handleDownloadHTML} disabled={!canExport}>
-            Download HTML
-          </button>
-          <button className="btn" onClick={handleDownloadJSON} disabled={!canExport}>
-            Download JSON
-          </button>
-          <button className="btn" onClick={handleDownloadTXT} disabled={!canExport}>
-            Download TXT
-          </button>
-          <button className="btn" onClick={handleDownloadSVG} disabled={!canExport}>
             Download SVG
           </button>
         </div>
@@ -340,18 +329,6 @@ export default function App() {
         ))}
       </div>
 
-      {/* Graph */}
-      <div className="pane">
-        <h3>Graph View</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-            <input
-              type="checkbox"
-              checked={showPedigree}
-              onChange={(e) => setShowPedigree(e.target.checked)}
-              disabled={!focusedNode}
-              aria-label="Show pedigree when focused"
-
       <div className="tab-panel">
         {activeTab === 'editor' && (
           <div className="pane">
@@ -364,10 +341,11 @@ export default function App() {
                     type="checkbox"
                     checked={rememberUpload}
                     onChange={(e) => setRememberUpload(e.target.checked)}
+                    aria-label="Remember last upload"
                   />
                   Remember last upload
                 </label>
-                <button className="btn" onClick={handleSaveEdited}>
+                <button className="btn" onClick={handleSaveEdited} aria-label="Save edited text">
                   Save edited text
                 </button>
               </div>
@@ -385,7 +363,6 @@ export default function App() {
               onUnfocus={handleUnfocus}
               focusedNodeId={focusedNode ? focusedNode.id : null}
               isFocused={isFocused}
-
             />
           </div>
         )}
@@ -400,6 +377,7 @@ export default function App() {
                   checked={showPedigree}
                   onChange={(e) => setShowPedigree(e.target.checked)}
                   disabled={!focusedNode}
+                  aria-label="Show pedigree when focused"
                 />
                 Show pedigree when focused
               </label>
