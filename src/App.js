@@ -82,7 +82,7 @@ export default function App() {
   const handleUnfocus = () => setFocusedNode(null);
 
   // Enable/disable export buttons
-  const hasExport = exportFocused
+  const canExport = exportFocused
     ? Array.isArray(focusExportTree) && focusExportTree.length > 0
     : Array.isArray(fullTree) && fullTree.length > 0;
 
@@ -252,16 +252,16 @@ export default function App() {
             Export focused view
           </label>
 
-          <button className="btn" onClick={handleDownloadHTML} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadHTML} disabled={!canExport}>
             Download HTML
           </button>
-          <button className="btn" onClick={handleDownloadJSON} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadJSON} disabled={!canExport}>
             Download JSON
           </button>
-          <button className="btn" onClick={handleDownloadTXT} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadTXT} disabled={!canExport}>
             Download TXT
           </button>
-          <button className="btn" onClick={handleDownloadSVG} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadSVG} disabled={!canExport}>
             Download SVG
           </button>
         </div>
