@@ -215,6 +215,9 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* Screen reader announcements */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
+
       {/* Top toolbar */}
       <div
         className="top-toolbar"
@@ -227,7 +230,11 @@ export default function App() {
         }}
       >
         {/* LEFT: file/open/save */}
-        <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div
+          role="group"
+          aria-label="File operations"
+          style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}
+        >
           <UploadButton onLoaded={handleFileLoaded} />
 
           <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
@@ -235,17 +242,20 @@ export default function App() {
               type="checkbox"
               checked={rememberUpload}
               onChange={(e) => setRememberUpload(e.target.checked)}
+              aria-label="Remember last upload"
             />
             Remember last upload
           </label>
 
-          <button className="btn" onClick={handleSaveEdited}>
+          <button className="btn" onClick={handleSaveEdited} aria-label="Save edited text">
             Save edited text
           </button>
         </div>
 
         {/* RIGHT: export + downloads */}
         <div
+          role="group"
+          aria-label="Export operations"
           style={{
             marginLeft: 'auto',
             display: 'inline-flex',
@@ -259,20 +269,41 @@ export default function App() {
               type="checkbox"
               checked={exportFocused}
               onChange={(e) => setExportFocused(e.target.checked)}
+              aria-label="Export focused view"
             />
             Export focused view
           </label>
 
-          <button className="btn" onClick={handleDownloadHTML} disabled={!canExport}>
+          <button
+            className="btn"
+            onClick={handleDownloadHTML}
+            disabled={!canExport}
+            aria-label={canExport ? 'Download HTML' : 'Download HTML (no data available)'}
+          >
             Download HTML
           </button>
-          <button className="btn" onClick={handleDownloadJSON} disabled={!canExport}>
+          <button
+            className="btn"
+            onClick={handleDownloadJSON}
+            disabled={!canExport}
+            aria-label={canExport ? 'Download JSON' : 'Download JSON (no data available)'}
+          >
             Download JSON
           </button>
-          <button className="btn" onClick={handleDownloadTXT} disabled={!canExport}>
+          <button
+            className="btn"
+            onClick={handleDownloadTXT}
+            disabled={!canExport}
+            aria-label={canExport ? 'Download TXT' : 'Download TXT (no data available)'}
+          >
             Download TXT
           </button>
-          <button className="btn" onClick={handleDownloadSVG} disabled={!canExport}>
+          <button
+            className="btn"
+            onClick={handleDownloadSVG}
+            disabled={!canExport}
+            aria-label={canExport ? 'Download SVG' : 'Download SVG (no data available)'}
+          >
             Download SVG
           </button>
         </div>
@@ -307,6 +338,7 @@ export default function App() {
               checked={showPedigree}
               onChange={(e) => setShowPedigree(e.target.checked)}
               disabled={!focusedNode}
+              aria-label="Show pedigree when focused"
             />
             Show pedigree when focused
           </label>
