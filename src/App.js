@@ -81,7 +81,7 @@ export default function App() {
   const handleUnfocus = () => setFocusedNode(null);
 
   // Enable/disable export buttons
-  const hasExport = exportFocused
+  const canExport = exportFocused
     ? Array.isArray(focusExportTree) && focusExportTree.length > 0
     : Array.isArray(fullTree) && fullTree.length > 0;
 
@@ -161,15 +161,6 @@ export default function App() {
 
   // Choose which tree to export based on "Export focused view"
   const graphTree = focusExportTree || displayedTree;
-  const hasFocusedExport = Array.isArray(focusExportTree) && focusExportTree.length > 0;
-  const shouldExportFocusedTree =
-    hasFocusedExport && (exportFocused || (isFocused && showPedigree));
-  const exportTree = shouldExportFocusedTree ? focusExportTree : fullTree;
-  const hasExport = shouldExportFocusedTree
-    ? true
-    : exportFocused
-      ? false
-      : Array.isArray(fullTree) && fullTree.length > 0;
   const exportTree = exportFocused ? focusExportTree : fullTree;
   const handleDownloadHTML = () => {
     const html = generateHTML(exportTree ?? []);
@@ -180,7 +171,7 @@ export default function App() {
     downloadAs('json', JSON.stringify(data, null, 2), 'application/json');
   };
   const handleDownloadTXT = () => {
-    const content = shouldExportFocusedTree && Array.isArray(focusExportTree)
+    const content =
       exportFocused && Array.isArray(focusExportTree)
         ? treeToText(focusExportTree)
         : (treeText ?? '');
@@ -272,16 +263,16 @@ export default function App() {
             Export focused view
           </label>
 
-          <button className="btn" onClick={handleDownloadHTML} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadHTML} disabled={!canExport}>
             Download HTML
           </button>
-          <button className="btn" onClick={handleDownloadJSON} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadJSON} disabled={!canExport}>
             Download JSON
           </button>
-          <button className="btn" onClick={handleDownloadTXT} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadTXT} disabled={!canExport}>
             Download TXT
           </button>
-          <button className="btn" onClick={handleDownloadSVG} disabled={!hasExport}>
+          <button className="btn" onClick={handleDownloadSVG} disabled={!canExport}>
             Download SVG
           </button>
         </div>
