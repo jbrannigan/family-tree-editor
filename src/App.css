@@ -100,7 +100,11 @@ body {
 
 /* Panes */
 .pane {
-  margin-top: 12px;
+  margin-top: 0;
+}
+
+.pane + .pane {
+  margin-top: 16px;
 }
 
 /* Editor */
@@ -149,18 +153,58 @@ textarea.editor:focus {
   border-radius: var(--radius);
 }
 
-/* Simple two-up on larger screens (no JS resizer) */
-@media (min-width: 980px) {
-  /* If left & right panes are adjacent siblings, show side-by-side */
-  .left-pane,
-  .right-pane {
-    display: inline-block;
-    vertical-align: top;
-    width: calc(50% - 8px);
-  }
-  .right-pane {
-    margin-left: 16px;
-  }
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  border-bottom: var(--border);
+  margin-bottom: 16px;
+}
+
+.tab-button {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: inherit;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  transition:
+    color 0.12s ease-in-out,
+    background-color 0.12s ease-in-out,
+    border-bottom-color 0.12s ease-in-out;
+}
+
+.tab-button:hover {
+  background: var(--btn-bg);
+}
+
+.tab-button.active {
+  color: var(--focus);
+  font-weight: 600;
+  border-bottom-color: var(--focus);
+}
+
+.tab-panel {
+  padding-bottom: 24px;
+}
+
+.pane-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pane-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Small touches */
