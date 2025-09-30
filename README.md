@@ -52,12 +52,21 @@ Open http://localhost:3000
 
 ## Usage
 
-1. Enter your family tree in the text editor panel using the **TreeDown** format
-2. See a live preview in the collapsible tree viewer and diagram view
-3. Use the **Focus** buttons to zoom in on any branch
-4. Export the full tree or a focused view in your preferred format
+1. Enter your family tree in the **Tree Text Editor** tab using the **TreeDown** format
+2. Switch to the **Tree View** tab to see a collapsible, navigable tree
+3. Switch to the **Graph View** tab to see an SVG diagram
+4. Use the **Focus** buttons (🔍) to zoom in on any branch
+5. Export the full tree or a focused view in your preferred format
 
-Accessibility: the tree uses `role="tree"` / `role="treeitem"`, roving `tabIndex`, `aria-expanded`, and a visible focus outline.
+### Accessibility
+
+The application is designed for screen reader and keyboard-only users:
+
+- Tree View uses `role="tree"` / `role="treeitem"` with full ARIA support
+- All interactive elements have descriptive labels
+- Keyboard navigation with arrow keys, Enter, Space, and Escape
+- Roving `tabIndex` for efficient navigation
+- Clear focus indicators throughout the interface
 
 ### TreeDown Example
 
@@ -108,16 +117,18 @@ All export modes support multiple formats:
 - **JSON** – structured representation for automation or programmatic editing
 - **TreeDown (.txt)** – plain text in the TreeDown syntax for sharing or editing
 
----
+### How to Use Focused Exports
+
+1. Click the 🔍 button on any person/union in Tree View, or press Enter
+2. Toggle **Show pedigree when focused** (in Graph View tab) to switch between:
+   - Pedigree view (ancestors only)
+   - Full branch view (ancestors + descendants)
+3. Check **Export focused view** in the top toolbar
+4. Click any Download button (HTML, JSON, TXT, SVG)
 
 ⚡️ _Tip:_ Focused exports are especially handy when collaborating. A contributor can work on just one branch in TreeDown form, then return it for merge without needing the full tree.
 
 ---
-
-> Tip: check **Export focused view** to export only the currently focused sub‑tree, and pair it with **Show pedigree when focused** to
-> export the lineage instead of the entire branch. Downloads automatically honor an active pedigree view: once you toggle **Show pedigree when focused**, the HTML, JSON, and TXT exports will capture that lineage even if you leave **Export focused view** unchecked.
-
-=======
 
 ## Development
 
@@ -129,10 +140,11 @@ This project uses [Create React App](https://create-react-app.dev/).
 
 ### Notes
 
-- Three‑pane layout (`left` editor, `right` tree, `bottom` graph.)
-- Tree View shows subtle vertical **indent guides**; they automatically hide while a focus is active.
-- Focus tools live in the Tree View toolbar: **Expand all**, **Collapse all**, **Unfocus**.
-- HTML export includes a self‑contained collapsible tree for easy sharing.
+- Tabbed interface with three views: **Tree Text Editor**, **Tree View**, and **Graph View**
+- Tree View shows subtle vertical **indent guides**; they automatically hide while a focus is active
+- Focus tools in Tree View: **Expand all**, **Collapse all**, **Unfocus**
+- HTML export includes a self‑contained collapsible tree for easy sharing
+- All UI elements include ARIA labels for screen reader accessibility
 
 ### Future Features
 
