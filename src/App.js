@@ -1,4 +1,4 @@
-// App.js
+// App.js - Fixed build cache issues
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TreeEditor from './TreeEditor';
 import TreeView from './TreeView';
