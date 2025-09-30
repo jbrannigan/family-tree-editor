@@ -23,10 +23,14 @@ src/
 ├── UploadButton.js     # File upload handling
 ├── utils/
 │   ├── parseTree.js    # TreeDown text → tree data parser
+│   ├── treeToText.js   # Tree data → TreeDown text converter
+│   ├── buildPedigree.js # Generates ancestor-only pedigree trees
 │   └── generateHTML.js # Tree data → standalone HTML export
 ├── tests/
 │   └── parseTree.test.js
 └── e2e/                # End-to-end tests
+    ├── html-export.spec.js
+    └── treeview-a11y.spec.js
 ```
 
 ## 🔄 Data Flow & State Management
@@ -48,6 +52,9 @@ The main application state is managed in `App.js` using React hooks:
 - **`focusedNode`**: Currently focused node for branch isolation
 - **`displayedTree`**: What's shown in views (either `fullTree` or focused branch)
 - **`exportFocused`**: Boolean controlling export behavior
+- **`showPedigree`**: When true, shows ancestors-only pedigree view
+- **`activeTab`**: Currently active tab ('editor', 'tree', or 'graph')
+- **`rememberUpload`**: Boolean for localStorage persistence preference
 
 ### Key State Effects
 
@@ -99,11 +106,13 @@ The main application state is managed in `App.js` using React hooks:
 
 **Key Features**:
 
-- ARIA-compliant tree widget (`role="tree"`, `role="treeitem"`)
-- Keyboard navigation (arrow keys, Enter, Space, Escape)
-- Expand/collapse functionality
+- Fully ARIA-compliant tree widget (`role="tree"`, `role="treeitem"`, `aria-expanded`, `aria-level`, `aria-posinset`, `aria-setsize`)
+- Keyboard navigation (arrow keys, Enter, Space, Escape, Home, End)
+- Expand/collapse functionality with toolbar buttons
 - Focus nodes with 🔍 buttons
 - Smart filtering with expand/collapse memory
+- Roving tabindex for efficient keyboard navigation
+- Screen reader announcements via `aria-live` regions
 
 **Navigation Behavior**:
 
@@ -144,6 +153,26 @@ The main application state is managed in `App.js` using React hooks:
 ### parseTree.js - TreeDown Parser
 
 **Purpose**: Converts indented text into tree data structure
+
+### treeToText.js - TreeDown Generator
+
+**Purpose**: Converts tree data structure back to TreeDown text format
+
+**Use cases**:
+
+- Exporting focused branches as text
+- Round-trip conversion (parse → modify → export)
+
+### buildPedigree.js - Pedigree Generator
+
+**Purpose**: Generates ancestor-only pedigree trees from a focus node
+
+**Algorithm**:
+
+1. Start at focus node
+2. Walk up parent references to collect all ancestors
+3. Build new tree containing only direct lineage
+4. Used for "Show pedigree when focused" feature
 
 **TreeDown Format Rules**:
 
@@ -294,11 +323,12 @@ The project includes several tools for understanding code structure:
 
 1. **Text-First Approach**: TreeDown format prioritizes human readability and git-friendliness
 2. **React Hooks**: Modern React patterns for state management without external libraries
-3. **Accessibility**: ARIA compliance for screen readers and keyboard-only users
-4. **Progressive Enhancement**: Core functionality works without JavaScript (in exports)
-5. **No External UI Framework**: Custom CSS keeps bundle small and styling consistent
-6. **Memoization**: Performance optimization for expensive parsing operations
-7. **Local Storage**: Automatic persistence improves user experience
+3. **Accessibility First**: Full ARIA compliance, comprehensive keyboard navigation, descriptive labels for all interactive elements
+4. **Tabbed Interface**: Single-view layout reduces cognitive load and works better on narrow screens
+5. **Progressive Enhancement**: Core functionality works without JavaScript (in exports)
+6. **No External UI Framework**: Custom CSS keeps bundle small and styling consistent
+7. **Memoization**: Performance optimization for expensive parsing operations
+8. **Local Storage**: Automatic persistence improves user experience
 
 ## 🤔 Common Questions
 
@@ -313,5 +343,11 @@ A: TreeDown's specific rules (tabs + 4-space groups, empty line handling) requir
 
 **Q: How are IDs generated and why are they important?**
 A: IDs are auto-generated incrementally (`n-0`, `n-1`, etc.) and provide stable references for focus, expansion state, and tree navigation.
+
+**Q: Why use tabs instead of a multi-pane layout?**
+A: Tabs reduce visual complexity, work better on mobile/narrow screens, and provide a clearer mental model. The previous three-pane layout was overwhelming for some users.
+
+**Q: What accessibility features are implemented?**
+A: Comprehensive ARIA markup, keyboard navigation (arrows/Enter/Space/Escape), descriptive labels for all controls, screen reader announcements, roving tabindex, and visible focus indicators throughout.
 
 This architecture emphasizes simplicity, accessibility, and maintainability while providing powerful tree editing and visualization capabilities.
