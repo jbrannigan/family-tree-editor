@@ -44,7 +44,7 @@ jobs:
 
     # 👇 This is what makes the PR “Deployments” panel appear with a link
     environment:
-      name: github-pages
+      name: ${{ github.event_name == 'pull_request' && 'github-pages-preview' || 'github-pages' }}
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
