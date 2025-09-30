@@ -161,8 +161,16 @@ export default function App() {
 
   // Choose which tree to export based on "Export focused view"
   const graphTree = focusExportTree || displayedTree;
+  const hasFocusedExport = Array.isArray(focusExportTree) && focusExportTree.length > 0;
+  const shouldExportFocusedTree =
+    hasFocusedExport && (exportFocused || (isFocused && showPedigree));
+  const exportTree = shouldExportFocusedTree ? focusExportTree : fullTree;
+  const hasExport = shouldExportFocusedTree
+    ? true
+    : exportFocused
+      ? false
+      : Array.isArray(fullTree) && fullTree.length > 0;
   const exportTree = exportFocused ? focusExportTree : fullTree;
-
   const handleDownloadHTML = () => {
     const html = generateHTML(exportTree ?? []);
     downloadAs('html', html, 'text/html');
@@ -172,7 +180,7 @@ export default function App() {
     downloadAs('json', JSON.stringify(data, null, 2), 'application/json');
   };
   const handleDownloadTXT = () => {
-    const content =
+    const content = shouldExportFocusedTree && Array.isArray(focusExportTree)
       exportFocused && Array.isArray(focusExportTree)
         ? treeToText(focusExportTree)
         : (treeText ?? '');

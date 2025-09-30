@@ -114,6 +114,10 @@ All export modes support multiple formats:
 
 ---
 
+> Tip: check **Export focused view** to export only the currently focused sub‑tree, and pair it with **Show pedigree when focused** to 
+> export the lineage instead of the entire branch. Downloads automatically honor an active pedigree view: once you toggle **Show pedigree when focused**, the HTML, JSON, and TXT exports will capture that lineage even if you leave **Export focused view** unchecked.
+
+=======
 ## Development
 
 This project uses [Create React App](https://create-react-app.dev/).
@@ -144,8 +148,6 @@ This project uses [Create React App](https://create-react-app.dev/).
 
 Pull requests are welcome!  
 Please open an issue first to discuss any significant changes.
-
----
 
 ---
 
