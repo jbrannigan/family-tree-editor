@@ -4,6 +4,12 @@ import { test, expect } from '@playwright/test';
 test('TreeView moves focus with Arrow keys', async ({ page }) => {
   await page.goto('/');
 
+  // Close the User Guide modal if it's showing (shown on first load)
+  const getStartedButton = page.getByRole('button', { name: 'Get Started' });
+  if (await getStartedButton.isVisible().catch(() => false)) {
+    await getStartedButton.click();
+  }
+
   // Seed the editor so the TreeView actually renders items.
   const sample = ['Root', '\tChild A', '\tChild B', '\t\tGrandchild B1'].join('\n');
 
