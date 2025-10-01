@@ -254,7 +254,7 @@ export default function GraphView({ tree }) {
   }, [tree, config]);
 
   return (
-    <div className="graph-view" style={{ marginTop: 12 }}>
+    <div className="graph-view" style={{ marginTop: 12, position: 'relative' }}>
       {/* <h3 style={{ marginTop: 0 }}>SVG Tree Diagram</h3>
       <br></br> */}
       <svg

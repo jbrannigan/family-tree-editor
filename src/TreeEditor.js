@@ -1,8 +1,16 @@
 // TreeEditor.js
 import { useRef, useState } from 'react';
+import UploadButton from './UploadButton';
 import './TreeEditor.css';
 
-export default function TreeEditor({ treeText = '', onTextChange = () => {} }) {
+export default function TreeEditor({
+  treeText = '',
+  onTextChange = () => {},
+  rememberUpload = true,
+  onRememberChange = () => {},
+  onSave = () => {},
+  onOpen = () => {},
+}) {
   const [softWrap, setSoftWrap] = useState(true);
   const gutterRef = useRef(null);
   const taRef = useRef(null);
@@ -79,15 +87,44 @@ export default function TreeEditor({ treeText = '', onTextChange = () => {} }) {
 
   return (
     <div className="tree-editor">
-      <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div
+        style={{
+          marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          flexWrap: 'wrap',
+        }}
+      >
+        <UploadButton onLoaded={onOpen} />
+
+        <button className="btn" onClick={onSave} aria-label="Save tree to file">
+          Save to File
+        </button>
+
+        <label
+          style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
+          title="Automatically save your tree in browser storage"
+        >
+          <input
+            type="checkbox"
+            checked={rememberUpload}
+            onChange={(e) => onRememberChange(e.target.checked)}
+            aria-label="Auto-save tree in browser"
+          />
+          Auto-save
+        </label>
+
+        <div style={{ width: 1, height: 24, background: '#d0d7de', margin: '0 4px' }} />
+
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <input
             type="checkbox"
             checked={softWrap}
             onChange={(e) => setSoftWrap(e.target.checked)}
-            aria-label="Soft wrap"
+            aria-label="Wrap long lines"
           />
-          <span>Soft wrap</span>
+          <span>Wrap Lines</span>
         </label>
 
         <button
@@ -99,10 +136,10 @@ export default function TreeEditor({ treeText = '', onTextChange = () => {} }) {
             onTextChange(normalizeTextIndentation(textNow));
             requestAnimationFrame(() => taRef.current?.focus());
           }}
-          aria-label="Normalize indentation"
-          title="Convert leading 4-space groups to tabs"
+          aria-label="Clean up document"
+          title="Normalize indentation and format according to TreeDown specification"
         >
-          Normalize indentation
+          Clean Up
         </button>
       </div>
 

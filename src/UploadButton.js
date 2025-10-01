@@ -17,8 +17,8 @@ export default function UploadButton({ onLoaded }) {
 
   return (
     <>
-      <button type="button" className="btn" onClick={handlePick}>
-        Upload File
+      <button type="button" className="btn" onClick={handlePick} aria-label="Open file">
+        Open
       </button>
       <input
         ref={inputRef}

@@ -17,9 +17,8 @@
 .te-wrap {
   display: flex;
   gap: 8px;
-  height: 420px;
-  min-height: 200px;
-  resize: vertical;
+  height: calc(100vh - 280px);
+  min-height: 300px;
   overflow: hidden;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -71,6 +70,9 @@
   color: #111827; /* gray-900 */
   tab-size: 2;
   resize: none;
+  /* Remove resize handle */
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 /* Soft wrap enabled */
