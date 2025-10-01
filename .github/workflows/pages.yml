@@ -30,6 +30,8 @@ jobs:
         run: npm ci || npm i
       - name: Build
         run: npm run build
+        env:
+          REACT_APP_CLAN_TREE_URL: ${{ secrets.CLAN_TREE_URL }}
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
