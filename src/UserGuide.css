@@ -1,0 +1,285 @@
+/* UserGuide.css */
+
+.user-guide-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.user-guide-modal {
+  background: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+}
+
+.user-guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: var(--border);
+}
+
+.user-guide-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #24292f;
+}
+
+.user-guide-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: var(--muted);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.user-guide-close:hover {
+  background: var(--btn-bg-hover);
+  color: #24292f;
+}
+
+.user-guide-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.guide-section {
+  margin-bottom: 32px;
+}
+
+.guide-section:last-child {
+  margin-bottom: 0;
+}
+
+.guide-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #24292f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guide-section p {
+  margin: 0 0 12px 0;
+  line-height: 1.6;
+  color: #57606a;
+}
+
+.guide-section ol,
+.guide-section ul {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.guide-section li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  color: #57606a;
+}
+
+.guide-section li:last-child {
+  margin-bottom: 0;
+}
+
+.guide-section li strong {
+  color: #24292f;
+}
+
+/* Example Code Block */
+.guide-example {
+  background: #f6f8fa;
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 12px 0;
+  overflow-x: auto;
+}
+
+.guide-example pre {
+  margin: 0;
+  font-family: ui-monospace, 'SF Mono', Monaco, 'Cascadia Mono', 'Segoe UI Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #24292f;
+}
+
+/* Tips List */
+.guide-tips {
+  background: #f6f8fa;
+  border-left: 3px solid var(--focus);
+  padding: 12px 16px 12px 20px;
+  margin: 12px 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  list-style: none;
+}
+
+.guide-tips li {
+  position: relative;
+  padding-left: 20px;
+  color: #57606a;
+}
+
+.guide-tips li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--focus);
+  font-weight: bold;
+}
+
+/* Keyboard Keys */
+.guide-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.guide-key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guide-key-row kbd {
+  display: inline-block;
+  padding: 4px 8px;
+  font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #24292f;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+  min-width: 32px;
+  text-align: center;
+}
+
+.guide-key-row span {
+  color: #57606a;
+  font-size: 14px;
+}
+
+/* Export Formats Grid */
+.guide-formats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.guide-format-item {
+  background: #f6f8fa;
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.guide-format-item strong {
+  display: block;
+  color: var(--focus);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.guide-format-item p {
+  margin: 0;
+  font-size: 13px;
+  color: #57606a;
+}
+
+/* Footer */
+.user-guide-footer {
+  padding: 16px 24px;
+  border-top: var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--focus);
+  color: white;
+  border-color: var(--focus);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0860ca;
+  border-color: #0860ca;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .user-guide-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .user-guide-header {
+    padding: 16px;
+  }
+
+  .user-guide-content {
+    padding: 16px;
+  }
+
+  .user-guide-footer {
+    padding: 12px 16px;
+  }
+
+  .guide-formats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animation */
+.user-guide-overlay {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.user-guide-modal {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

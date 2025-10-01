@@ -301,10 +301,10 @@ export default function TreeView({
         style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
       >
         <button type="button" className="btn" onClick={expandAll} aria-label="Expand all">
-          Expand all
+          Expand All
         </button>
         <button type="button" className="btn" onClick={collapseAll} aria-label="Collapse all">
-          Collapse all
+          Collapse All
         </button>
         <button
           type="button"
@@ -312,10 +312,11 @@ export default function TreeView({
           onClick={() => onUnfocus?.()}
           disabled={!isFocused}
           aria-disabled={!isFocused}
-          title={isFocused ? 'Restore full view' : 'Nothing is focused'}
+          aria-label={isFocused ? 'Show full tree' : 'Nothing is focused'}
+          title={isFocused ? 'Show full tree' : 'Nothing is focused'}
           style={{ marginLeft: 4 }}
         >
-          Unfocus
+          Show All
         </button>
       </div>
       <p className="tree-hint" aria-live="polite">

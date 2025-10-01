@@ -20,6 +20,7 @@
   padding: 6px;
   max-height: 60vh;
   overflow: auto; /* vertical + horizontal as needed */
+  background: var(--bg);
 }
 
 /* Paint indent guides only under the actual content width */

@@ -1,15 +1,32 @@
-/* App.css — reset-ish */
+/* App.css — Scot-Irish Heritage Theme */
 :root {
+  /* Heritage color palette - from McGinty coat of arms */
+  --heritage-green: #2d8659;
+  --heritage-navy: #1a3c99;
+  --heritage-gold: #d4af37;
+  --heritage-burgundy: #8b1538;
+  --heritage-slate: #566573;
+
+  /* Layout */
   --gap: 12px;
   --radius: 8px;
+
+  /* Core colors with heritage influence */
   --border: 1px solid #d0d7de;
-  --bg: #fff;
-  --muted: #57606a;
-  --btn-bg: #f6f8fa;
-  --btn-bg-hover: #eef1f4;
-  --btn-border: #d0d7de;
-  --focus: #0969da;
-  --hint-bg: #f6f8fa;
+  --bg: #fdfcfa;
+  --bg-secondary: #f4f1ed;
+  --muted: var(--heritage-slate);
+  --btn-bg: transparent;
+  --btn-bg-hover: rgba(61, 110, 44, 0.08);
+  --btn-border: rgba(86, 101, 115, 0.2);
+  --focus: var(--heritage-navy);
+  --hint-bg: #f8f6f3;
+  --link-color: var(--heritage-burgundy);
+  --accent: var(--heritage-gold);
+
+  /* Tartan toggle: set to 'none' to disable tartan pattern */
+  --tartan-display: block;
+  /* To enable tartan, change above to: --tartan-display: block; */
 }
 
 *,
@@ -27,7 +44,8 @@ body,
 body {
   margin: 0;
   color: #24292f;
-  background: #fff;
+  background: linear-gradient(135deg, #f4f1ed 0%, #e8e4dd 100%);
+  min-height: 100vh;
   font:
     14px/1.45 system-ui,
     -apple-system,
@@ -44,6 +62,32 @@ body {
   padding: 16px;
   max-width: 1100px;
   margin: 0 auto;
+}
+
+/* Header */
+.app > header {
+  position: relative;
+  padding: 20px 24px;
+  margin: -16px -16px 16px -16px;
+  background: linear-gradient(135deg, var(--heritage-navy) 0%, #2a4a8a 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Remove coat of arms from header */
+.app > header::before {
+  display: none;
+}
+
+.app > header h1 {
+  position: relative;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  z-index: 1;
 }
 
 /* Screen reader only content */
@@ -91,18 +135,25 @@ body {
 .btn {
   appearance: none;
   border: 1px solid var(--btn-border);
-  background: var(--btn-bg);
+  background: var(--bg);
   border-radius: 6px;
   padding: 6px 10px;
   font: inherit;
   cursor: pointer;
   transition:
     background-color 0.12s ease-in-out,
-    box-shadow 0.12s ease-in-out;
+    box-shadow 0.12s ease-in-out,
+    border-color 0.12s ease-in-out;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--btn-bg-hover);
+  border-color: var(--heritage-green);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--heritage-gold);
+  outline-offset: 2px;
 }
 
 .btn:disabled,
@@ -111,13 +162,38 @@ body {
   cursor: not-allowed;
 }
 
+.btn-primary {
+  background: transparent;
+  color: var(--heritage-navy);
+  border: 2px solid var(--heritage-navy);
+  font-weight: 500;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: rgba(44, 74, 115, 0.08);
+  border-color: #1e3652;
+  color: #1e3652;
+}
+
+.btn-primary:disabled {
+  background: transparent;
+  color: var(--muted);
+  border: 2px solid var(--btn-border);
+}
+
 /* Panes */
 .pane {
   margin-top: 0;
+  padding: 24px;
 }
 
 .pane + .pane {
   margin-top: 16px;
+}
+
+/* Add padding to bottom of pane content */
+.pane > *:last-child {
+  padding-bottom: 16px;
 }
 
 /* Editor */
@@ -170,38 +246,48 @@ textarea.editor:focus {
   display: flex;
   gap: 8px;
   border-bottom: var(--border);
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .tab-button {
   appearance: none;
-  border: none;
-  background: none;
-  padding: 8px 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 8px 16px;
   font: inherit;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
+  border-bottom: none;
   color: inherit;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
   transition:
     color 0.12s ease-in-out,
     background-color 0.12s ease-in-out,
-    border-bottom-color 0.12s ease-in-out;
+    border-color 0.12s ease-in-out;
+  position: relative;
+  margin-bottom: -1px;
+  z-index: 1;
 }
 
 .tab-button:hover {
-  background: var(--btn-bg);
+  background: var(--bg-secondary);
 }
 
 .tab-button.active {
-  color: var(--focus);
+  color: var(--heritage-navy);
   font-weight: 600;
-  border-bottom-color: var(--focus);
+  background: var(--bg);
+  border-color: var(--btn-border);
+  border-bottom-color: var(--bg);
 }
 
 .tab-panel {
-  padding-bottom: 24px;
+  background: var(--bg);
+  border: 1px solid var(--btn-border);
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-top: 0;
 }
 
 .pane-header {
@@ -220,6 +306,55 @@ textarea.editor:focus {
   flex-wrap: wrap;
 }
 
+/* Export Panel */
+.export-panel {
+  background: var(--bg);
+  border: 1px solid var(--btn-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.export-panel-content {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.export-formats {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-right: 12px;
+  border-right: 1px solid var(--btn-border);
+}
+
+.export-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.export-scope {
+  display: inline-flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.export-scope-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.export-scope-options label {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 /* Small touches */
 h3 {
   margin: 10px 0;
@@ -232,4 +367,22 @@ label {
 code,
 pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+/* Links with heritage styling */
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: color 0.12s ease-in-out;
+}
+
+a:hover {
+  color: var(--heritage-navy);
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--heritage-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
