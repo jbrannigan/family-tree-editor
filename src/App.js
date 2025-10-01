@@ -229,20 +229,34 @@ export default function App() {
   const handleLoadClanTree = async () => {
     // eslint-disable-next-line no-undef
     const clanTreeUrl = process.env.REACT_APP_CLAN_TREE_URL;
-    if (!clanTreeUrl) return;
+    if (!clanTreeUrl) {
+      console.error('CLAN_TREE_URL not configured');
+      return;
+    }
+
+    console.log('Loading clan tree from:', clanTreeUrl);
 
     try {
       // eslint-disable-next-line no-undef
       const response = await fetch(clanTreeUrl);
-      if (!response.ok) throw new Error('Failed to load clan tree');
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       const text = await response.text();
+      console.log('Loaded tree data, length:', text.length);
+
       setTreeText(text);
       if (rememberUpload) {
         localStorage.setItem(LS_TEXT, text);
       }
+
+      console.log('Successfully loaded clan tree');
     } catch (error) {
       console.error('Error loading clan tree:', error);
-      alert('Failed to load McGinty Clan Tree. Please try again later.');
+      alert(`Failed to load McGinty Clan Tree. Error: ${error.message}`);
     }
   };
 
