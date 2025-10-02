@@ -315,7 +315,7 @@ export default function App() {
 
       {/* App Header */}
       <header>
-        <img src="/logo3.png" alt="" className="logo" />
+        <img src="./logo3.png" alt="" className="logo" />
         <h1>Family Tree Editor</h1>
       </header>
 
