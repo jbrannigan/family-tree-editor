@@ -92,10 +92,10 @@ export default function App() {
   const isFocused = Boolean(focusedNode);
   const displayedTree = isFocused ? [focusedNode] : fullTree;
   const pedigreeTree = useMemo(() => {
-    if (!showPedigree || !focusedNode) return null;
+    if (!focusedNode) return null;
     const pedigree = buildPedigreeTree(fullTree, focusedNode.id);
     return pedigree && pedigree.length > 0 ? pedigree : null;
-  }, [showPedigree, focusedNode, fullTree]);
+  }, [focusedNode, fullTree]);
   const focusExportTree = useMemo(() => {
     if (!focusedNode) return null;
     if (showPedigree && Array.isArray(pedigreeTree) && pedigreeTree.length > 0) {
@@ -315,6 +315,7 @@ export default function App() {
 
       {/* App Header */}
       <header>
+        <img src="/logo3.png" alt="" className="logo" />
         <h1>Family Tree Editor</h1>
       </header>
 
@@ -498,8 +499,39 @@ export default function App() {
 
         {activeTab === 'tree' && (
           <div className="pane">
+            <div
+              style={{
+                padding: '8px 12px',
+                marginBottom: '8px',
+                background: '#e8f5e9',
+                border: '1px solid #a5d6a7',
+                borderRadius: '6px',
+                fontSize: '12px',
+                color: '#2e7d32',
+              }}
+            >
+              💡 Click a circle (○) to focus on that person and filter the Diagram tab to show their
+              family tree.
+            </div>
+            {isFocused && (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  marginBottom: '12px',
+                  background: '#f8f6f3',
+                  border: '1px solid #d0d7de',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  color: '#566573',
+                }}
+              >
+                <strong>Focused:</strong> Showing pedigree (ancestors) of{' '}
+                {focusedNode?.name || 'selected node'}. Click crosshair (⌖) or press Esc to show
+                full tree.
+              </div>
+            )}
             <TreeView
-              tree={displayedTree}
+              tree={isFocused && pedigreeTree ? pedigreeTree : fullTree}
               onFocus={(node) => setFocusedNode(node)}
               onUnfocus={handleUnfocus}
               focusedNodeId={focusedNode ? focusedNode.id : null}
@@ -510,21 +542,69 @@ export default function App() {
 
         {activeTab === 'graph' && (
           <div className="pane" ref={graphHostRef}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <label
-                style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
-                title="Show only direct ancestors (pedigree chart) when a person is focused"
-              >
-                <input
-                  type="checkbox"
-                  checked={showPedigree}
-                  onChange={(e) => setShowPedigree(e.target.checked)}
-                  disabled={!focusedNode}
-                  aria-label="Show pedigree (ancestors only)"
-                />
-                Show pedigree
-              </label>
+            <div
+              style={{
+                padding: '8px 12px',
+                marginBottom: '8px',
+                background: '#e8f5e9',
+                border: '1px solid #a5d6a7',
+                borderRadius: '6px',
+                fontSize: '12px',
+                color: '#2e7d32',
+              }}
+            >
+              💡 Focusing a person in the List tab filters this diagram to show only their family
+              tree.
             </div>
+            {isFocused ? (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  marginBottom: '12px',
+                  background: '#f8f6f3',
+                  border: '1px solid #d0d7de',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  color: '#566573',
+                }}
+              >
+                <div style={{ marginBottom: '6px' }}>
+                  <strong>Focused:</strong> {focusedNode?.name || 'Selected node'}.{' '}
+                  {showPedigree ? 'Showing pedigree (ancestors only).' : 'Showing descendants.'}
+                </div>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    gap: 6,
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                  title="Toggle between showing ancestors (pedigree) or descendants"
+                >
+                  <input
+                    type="checkbox"
+                    checked={showPedigree}
+                    onChange={(e) => setShowPedigree(e.target.checked)}
+                    aria-label="Show pedigree (ancestors only)"
+                  />
+                  Show pedigree (ancestors)
+                </label>
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  marginBottom: '12px',
+                  background: '#f8f6f3',
+                  border: '1px solid #d0d7de',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  color: '#566573',
+                }}
+              >
+                Showing full tree. Focus a person in the List tab to filter this diagram.
+              </div>
+            )}
             <GraphView tree={graphTree} />
           </div>
         )}
