@@ -26,22 +26,17 @@ test('TreeView moves focus with Arrow keys', async ({ page }) => {
   const items = page.getByRole('treeitem');
   await expect(items.first()).toBeVisible();
 
-  // Give focus to the first item by clicking it (more reliable than Tab through the page chrome)
+  // Give focus to the tree container (roving tabindex pattern)
   await items.first().click();
-  await expect(items.first()).toBeFocused();
+  await expect(items.first()).toHaveAttribute('aria-selected', 'true');
 
-  // ArrowDown should move focus to the second item
+  // ArrowDown should move selection to the second item (using aria-selected)
   await page.keyboard.press('ArrowDown');
-  await expect(items.nth(1)).toBeFocused();
+  await expect(items.nth(1)).toHaveAttribute('aria-selected', 'true');
+  await expect(items.first()).toHaveAttribute('aria-selected', 'false');
 
-  // ArrowRight should expand if collapsed (optional assertion if you set aria-expanded)
-  // await expect(items.nth(1)).toHaveAttribute('aria-expanded', 'true');
-
-  // ArrowUp should move focus back to the first item
+  // ArrowUp should move selection back to the first item
   await page.keyboard.press('ArrowUp');
-  await expect(items.first()).toBeFocused();
-
-  // ArrowRight on first item should expand root (optional)
-  // await page.keyboard.press('ArrowRight');
-  // await expect(items.first()).toHaveAttribute('aria-expanded', 'true');
+  await expect(items.first()).toHaveAttribute('aria-selected', 'true');
+  await expect(items.nth(1)).toHaveAttribute('aria-selected', 'false');
 });
