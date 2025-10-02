@@ -23,19 +23,19 @@ export default function UserGuide({ onClose, onLoadClanTree }) {
             <h3>🚀 Quick Start</h3>
             <ol>
               <li>
-                <strong>Write your tree</strong> in the <strong>Tree Text Editor</strong> tab using
-                TreeDown format
+                <strong>Write your tree</strong> in the <strong>Edit</strong> tab using TreeDown
+                format
               </li>
               <li>
-                <strong>View your tree</strong> in the <strong>Tree View</strong> tab (collapsible
-                list)
+                <strong>Browse your tree</strong> in the <strong>List</strong> tab (searchable tree
+                view)
               </li>
               <li>
-                <strong>See the diagram</strong> in the <strong>Graph View</strong> tab (visual
-                chart)
+                <strong>See the diagram</strong> in the <strong>Diagram</strong> tab (visual chart
+                with pan/zoom)
               </li>
               <li>
-                <strong>Export</strong> using the download buttons in the toolbar
+                <strong>Export</strong> using the export panel in the toolbar
               </li>
             </ol>
           </section>
@@ -73,35 +73,33 @@ export default function UserGuide({ onClose, onLoadClanTree }) {
 
           {/* Navigation */}
           <section className="guide-section">
-            <h3>⌨️ Keyboard Navigation</h3>
+            <h3>⌨️ Keyboard Navigation (List Tab)</h3>
             <div className="guide-keyboard">
               <div className="guide-key-row">
-                <kbd>↑</kbd> <kbd>↓</kbd> <span>Move between items</span>
+                <kbd>↑</kbd> <kbd>↓</kbd> <span>Move between people in the tree</span>
               </div>
               <div className="guide-key-row">
-                <kbd>←</kbd> <kbd>→</kbd> <span>Collapse/expand or navigate tree</span>
-              </div>
-              <div className="guide-key-row">
-                <kbd>Enter</kbd> <span>Focus on selected item</span>
-              </div>
-              <div className="guide-key-row">
-                <kbd>Space</kbd> <span>Toggle expand/collapse</span>
+                <kbd>Enter</kbd> <span>Focus on selected person (filters Diagram tab)</span>
               </div>
               <div className="guide-key-row">
                 <kbd>Esc</kbd> <span>Unfocus (return to full tree)</span>
               </div>
               <div className="guide-key-row">
-                <kbd>Home</kbd> / <kbd>End</kbd> <span>Jump to first/last item</span>
+                <kbd>Home</kbd> / <kbd>End</kbd> <span>Jump to first/last person</span>
               </div>
             </div>
+            <p style={{ marginTop: '12px', fontSize: '14px' }}>
+              <strong>Search:</strong> Use the search box to find people. Press <kbd>Enter</kbd> to
+              jump to next match, <kbd>Shift</kbd>+<kbd>Enter</kbd> for previous match.
+            </p>
           </section>
 
           {/* Focus & Export */}
           <section className="guide-section">
-            <h3>🔍 Focus & Export</h3>
+            <h3>🎯 Focus Feature</h3>
             <p>
-              <strong>Focus</strong> lets you isolate a specific person or branch to view and export
-              just that part of your tree.
+              <strong>Focus</strong> lets you isolate a specific person to view their pedigree
+              (ancestors) in the List tab and filter the Diagram tab to show just their family tree.
             </p>
 
             <h4 style={{ fontSize: '15px', marginTop: '12px', marginBottom: '8px' }}>
@@ -112,26 +110,36 @@ export default function UserGuide({ onClose, onLoadClanTree }) {
                 Go to the <strong>List</strong> tab
               </li>
               <li>
-                Click the <strong>🔍 button</strong> next to any person (or press Enter when
-                selected)
+                Click the <strong>○ (circle) button</strong> next to any person (or press Enter when
+                that person is selected)
               </li>
-              <li>The view updates to show only that person and their descendants</li>
               <li>
-                Click <strong>Unfocus</strong> to return to the full tree
+                The List tab shows their pedigree (ancestors), and the Diagram tab filters to show
+                their family tree
+              </li>
+              <li>
+                The circle changes to a <strong>⌖ (crosshair)</strong> to indicate focus
+              </li>
+              <li>
+                Click the crosshair, press <kbd>Esc</kbd>, or click <strong>Show All</strong> to
+                return to the full tree
               </li>
             </ol>
 
             <h4 style={{ fontSize: '15px', marginTop: '12px', marginBottom: '8px' }}>
-              Pedigree View (Ancestors Only)
+              Diagram Tab Options
             </h4>
-            <p>When a person is focused, you can view their pedigree chart:</p>
-            <ol>
-              <li>Focus on a person in the List tab</li>
-              <li>Switch to the Diagram tab</li>
+            <p>When a person is focused, the Diagram tab shows:</p>
+            <ul>
               <li>
-                Check <strong>"Show pedigree"</strong> to see only their direct ancestors
+                <strong>Descendants</strong> (default) - Shows the focused person and all their
+                children, grandchildren, etc.
               </li>
-            </ol>
+              <li>
+                <strong>Pedigree (ancestors)</strong> - Check "Show pedigree" to see only their
+                direct ancestors (parents, grandparents, etc.)
+              </li>
+            </ul>
 
             <h4 style={{ fontSize: '15px', marginTop: '12px', marginBottom: '8px' }}>Exporting</h4>
             <p>Choose what to export using the export panel:</p>
@@ -146,7 +154,7 @@ export default function UserGuide({ onClose, onLoadClanTree }) {
                     <strong>Full tree:</strong> Export everything
                   </li>
                   <li>
-                    <strong>Focused subtree:</strong> Export only the currently focused branch
+                    <strong>Focused tree:</strong> Export only the currently focused person's tree
                     (great for sharing specific family lines)
                   </li>
                 </ul>
@@ -191,12 +199,15 @@ export default function UserGuide({ onClose, onLoadClanTree }) {
                 <strong>Clean Up</strong> normalizes indentation and formatting
               </li>
               <li>
-                <strong>Focused subtree exports</strong> are great for collaboration—share just one
-                branch
+                <strong>Search box</strong> in List tab highlights matches and shows count (e.g.,
+                "2/5")
               </li>
               <li>
-                Use <strong>Expand All</strong> / <strong>Collapse All</strong> in List view for
-                quick navigation
+                <strong>Pan &amp; Zoom</strong> in Diagram tab - drag to pan, scroll to zoom
+              </li>
+              <li>
+                <strong>Focused tree exports</strong> are great for collaboration—share just one
+                branch
               </li>
             </ul>
           </section>

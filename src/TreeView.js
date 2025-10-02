@@ -54,25 +54,10 @@ export default function TreeView({
   // Indexes for fast lookups
   const { allIds, nodeById, parentById, rootIds } = useMemo(() => buildIndexes(roots), [roots]);
 
-  // Expanded state
-  const [expanded, setExpanded] = useState(() => new Set(allIds));
-  useEffect(() => {
-    if (!filterText.trim()) {
-      setExpanded((prev) => {
-        const next = new Set([...prev].filter((id) => allIds.has(id)));
-        if (next.size === 0) rootIds.forEach((id) => next.add(id));
-        return next;
-      });
-    }
-  }, [allIds, rootIds, filterText]);
+  // Expanded state - ALWAYS all expanded (no collapse functionality)
+  const expanded = useMemo(() => new Set(allIds), [allIds]);
 
-  // Remember user's expansion while filtering
-  const prevExpandedRef = useRef(null);
-  const wasFilteringRef = useRef(false);
-
-  const q = filterText.trim().toLowerCase();
-
-  // Visible rows depend on expanded set
+  // Visible rows - always show all (always expanded)
   const visible = useMemo(() => flattenVisible(roots, expanded), [roots, expanded]);
 
   // Active (roving) focus
@@ -94,98 +79,83 @@ export default function TreeView({
 
   const containerRef = useRef(null);
 
-  const toggleNode = (id) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const expandAll = () => setExpanded(new Set(allIds));
-  const collapseAll = () => {
-    const next = new Set();
-    rootIds.forEach((id) => next.add(id)); // show just top level
-    setExpanded(next);
-  };
+  // Define search state early (before using it)
+  const [localFilter, setLocalFilter] = useState('');
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const effectiveFilter = filterText || localFilter;
+  const effectiveQ = effectiveFilter.trim().toLowerCase();
 
   // Filter helpers (highlight/dim)
   const matches = useCallback(
     (name) => {
-      if (!q) return true;
+      if (!effectiveQ) return true;
       const s = (name || '').toLowerCase();
-      return s.includes(q);
+      return s.includes(effectiveQ);
     },
-    [q],
+    [effectiveQ],
   );
 
   const renderName = (name) => {
-    if (!q) return name || '(unnamed)';
+    if (!effectiveQ) return name || '(unnamed)';
     const raw = name || '(unnamed)';
     const low = raw.toLowerCase();
-    const i = low.indexOf(q);
+    const i = low.indexOf(effectiveQ);
     if (i === -1) return raw;
     return (
       <>
         {raw.slice(0, i)}
-        <mark>{raw.slice(i, i + q.length)}</mark>
-        {raw.slice(i + q.length)}
+        <mark>{raw.slice(i, i + effectiveQ.length)}</mark>
+        {raw.slice(i + effectiveQ.length)}
       </>
     );
   };
 
-  // SMART FILTER EXPANSION
+  // Get all matching nodes
+  const matchingNodes = useMemo(() => {
+    if (!effectiveQ) return [];
+    return visible.filter(({ node }) => matches(node.name));
+  }, [effectiveQ, visible, matches]);
+
+  // When search changes, reset to first match
   useEffect(() => {
-    const nowFiltering = !!q;
-
-    if (nowFiltering && !wasFilteringRef.current) {
-      wasFilteringRef.current = true;
-      prevExpandedRef.current = new Set(expanded);
-
-      const toExpand = new Set(rootIds);
-      for (const id of allIds) {
-        const n = nodeById.get(id);
-        if (!n) continue;
-        if (matches(n.name)) {
-          // add all ancestors up to root
-          let cur = id;
-          while (cur != null) {
-            const parent = parentById.get(cur);
-            if (parent != null) toExpand.add(parent);
-            cur = parent ?? null;
-          }
-        }
-      }
-      setExpanded(toExpand);
-    } else if (!nowFiltering && wasFilteringRef.current) {
-      wasFilteringRef.current = false;
-      const saved = prevExpandedRef.current || new Set();
-      const restore = new Set();
-      for (const id of saved) if (allIds.has(id)) restore.add(id);
-      if (restore.size === 0) rootIds.forEach((id) => restore.add(id));
-      setExpanded(restore);
-      prevExpandedRef.current = null;
+    if (!effectiveQ) {
+      setCurrentMatchIndex(0);
+      return;
     }
-  }, [q, matches, allIds, nodeById, parentById, rootIds, expanded]);
+    setCurrentMatchIndex(0);
+    if (matchingNodes.length > 0) {
+      setActiveId(matchingNodes[0].node.id);
+    }
+  }, [effectiveQ, matchingNodes]);
 
-  // When starting a filter, move focus to the first visible match
+  // Navigate to current match
   useEffect(() => {
-    if (!q) return;
-    const firstMatch = visible.find(({ node }) => matches(node.name));
-    if (firstMatch && firstMatch.node.id !== activeId) {
-      setActiveId(firstMatch.node.id);
+    if (
+      matchingNodes.length > 0 &&
+      currentMatchIndex >= 0 &&
+      currentMatchIndex < matchingNodes.length
+    ) {
+      setActiveId(matchingNodes[currentMatchIndex].node.id);
     }
-  }, [q, matches, visible, activeId]);
+  }, [currentMatchIndex, matchingNodes]);
 
-  // Keep active row in view *and* move real DOM focus to it (fixes E2E focus assertions)
+  const goToNextMatch = () => {
+    if (matchingNodes.length === 0) return;
+    setCurrentMatchIndex((prev) => (prev + 1) % matchingNodes.length);
+  };
+
+  const goToPrevMatch = () => {
+    if (matchingNodes.length === 0) return;
+    setCurrentMatchIndex((prev) => (prev - 1 + matchingNodes.length) % matchingNodes.length);
+  };
+
+  // Keep active row in view
   useEffect(() => {
     if (!activeId) return;
     const el = containerRef.current?.querySelector(`[data-treeitem-id="${activeId}"]`);
     if (el) {
-      // ensure it’s tabbable and focused
+      // ensure it's tabbable
       el.setAttribute('tabindex', '0');
-      el.focus();
       // keep it visible
       if ('scrollIntoView' in el) {
         el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -206,9 +176,7 @@ export default function TreeView({
     if (idx == null) return;
 
     const row = visible[idx];
-    const { node, level } = row;
-    const hasChildren = node.children && node.children.length > 0;
-    const isExpanded = expanded.has(node.id);
+    const { node } = row;
 
     switch (e.key) {
       case 'ArrowDown': {
@@ -223,45 +191,17 @@ export default function TreeView({
         if (prev) setActiveId(prev.node.id);
         break;
       }
-      case 'ArrowRight': {
-        e.preventDefault();
-        if (hasChildren && !isExpanded) {
-          toggleNode(node.id);
-        } else if (hasChildren && isExpanded) {
-          const next = visible[idx + 1];
-          if (next) setActiveId(next.node.id);
-        }
-        break;
-      }
-      case 'ArrowLeft': {
-        e.preventDefault();
-        if (hasChildren && isExpanded) {
-          toggleNode(node.id);
-        } else {
-          const parent = visible
-            .slice(0, idx)
-            .reverse()
-            .find((r) => r.level === level - 1);
-          if (parent) setActiveId(parent.node.id);
-        }
-        break;
-      }
       case 'Enter': {
-        // Enter activates Focus (zoom) on any item
         e.preventDefault();
-        onFocus?.(node);
-        break;
-      }
-      case ' ': {
-        // Space toggles expand/collapse (no focus here)
-        if (hasChildren) {
-          e.preventDefault();
-          toggleNode(node.id);
+        // If already focused on this node, unfocus; otherwise focus
+        if (focusedNodeId === node.id) {
+          onUnfocus?.();
+        } else {
+          onFocus?.(node);
         }
         break;
       }
       case 'Escape': {
-        // Esc unfocuses if in focused mode
         if (isFocused && onUnfocus) {
           e.preventDefault();
           onUnfocus();
@@ -295,32 +235,82 @@ export default function TreeView({
   };
 
   return (
-    <div className={`tree-view${isFocused ? ' is-focused' : ''}${q ? ' has-filter' : ''}`}>
+    <div className={`tree-view${isFocused ? ' is-focused' : ''}${effectiveQ ? ' has-filter' : ''}`}>
       <div
         className="tree-toolbar"
-        style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
+        style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}
       >
-        <button type="button" className="btn" onClick={expandAll} aria-label="Expand all">
-          Expand All
-        </button>
-        <button type="button" className="btn" onClick={collapseAll} aria-label="Collapse all">
-          Collapse All
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => onUnfocus?.()}
-          disabled={!isFocused}
-          aria-disabled={!isFocused}
-          aria-label={isFocused ? 'Show full tree' : 'Nothing is focused'}
-          title={isFocused ? 'Show full tree' : 'Nothing is focused'}
-          style={{ marginLeft: 4 }}
-        >
-          Show All
-        </button>
+        <input
+          type="search"
+          placeholder="Search tree..."
+          value={localFilter}
+          onChange={(e) => setLocalFilter(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (e.shiftKey) {
+                goToPrevMatch();
+              } else {
+                goToNextMatch();
+              }
+            }
+          }}
+          className="tree-search"
+          aria-label="Search family tree"
+          style={{
+            flex: 1,
+            padding: '6px 10px',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            fontSize: '14px',
+          }}
+        />
+        {effectiveQ && (
+          <>
+            <span style={{ fontSize: '12px', color: '#666', whiteSpace: 'nowrap' }}>
+              {matchingNodes.length > 0
+                ? `${currentMatchIndex + 1}/${matchingNodes.length}`
+                : '0/0'}
+            </span>
+            <button
+              type="button"
+              className="btn"
+              onClick={goToPrevMatch}
+              disabled={matchingNodes.length === 0}
+              aria-label="Previous match"
+              title="Previous match (Shift+Enter)"
+              style={{ padding: '4px 8px', fontSize: '14px' }}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={goToNextMatch}
+              disabled={matchingNodes.length === 0}
+              aria-label="Next match"
+              title="Next match (Enter)"
+              style={{ padding: '4px 8px', fontSize: '14px' }}
+            >
+              ↓
+            </button>
+          </>
+        )}
+        {isFocused && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => onUnfocus?.()}
+            aria-label="Show full tree"
+            title="Show full tree (Esc)"
+            style={{ marginLeft: 'auto' }}
+          >
+            Show All
+          </button>
+        )}
       </div>
       <p className="tree-hint" aria-live="polite">
-        Keys: ↑/↓ move • ←/→ collapse/expand • Space toggles • Enter focuses • Esc unfocuses
+        Keys: ↑/↓ move • Enter focuses node • Esc unfocuses
       </p>
       <div
         ref={containerRef}
@@ -337,6 +327,7 @@ export default function TreeView({
             const isExpanded = expanded.has(node.id);
             const isActive = node.id === activeId;
             const isFocusedRow = focusedNodeId && node.id === focusedNodeId;
+            const isRootAndNoFocus = level === 0 && !focusedNodeId;
             const hit = matches(node.name);
             const { posinset, setsize } = getSiblingMeta(parentId, node.id);
 
@@ -344,7 +335,6 @@ export default function TreeView({
               <li
                 key={node.id}
                 role="treeitem"
-                aria-expanded={hasChildren ? isExpanded : undefined}
                 aria-level={level + 1}
                 aria-posinset={posinset}
                 aria-setsize={setsize}
@@ -355,51 +345,55 @@ export default function TreeView({
                   'tree-row' +
                   (isActive ? ' is-active' : '') +
                   (isFocusedRow ? ' is-focused' : '') +
-                  (q && !hit ? ' is-dim' : '')
+                  (effectiveQ && !hit ? ' is-dim' : '')
                 }
                 style={{
                   display: 'flex',
                   width: 'max-content',
                   alignItems: 'center',
-                  marginLeft: level * 18,
+                  marginLeft: level * 24,
+                  gap: '8px',
                 }}
                 onClick={() => setActiveId(node.id)}
               >
-                {hasChildren ? (
-                  <button
-                    type="button"
-                    className="tree-toggle"
-                    aria-label={isExpanded ? 'Collapse' : 'Expand'}
-                    aria-expanded={isExpanded}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleNode(node.id);
-                    }}
-                  >
-                    {isExpanded ? '▾' : '▸'}
-                  </button>
-                ) : (
-                  <span
-                    style={{ display: 'inline-block', width: 22, height: 22, marginRight: 6 }}
-                  />
+                {level > 0 && (
+                  <div className="tree-connector">
+                    <span className="tree-branch">└─</span>
+                  </div>
                 )}
-
-                <span className="tree-node-label" style={{ flex: '0 1 auto' }}>
-                  {renderName(node.name)}
-                </span>
 
                 <button
                   type="button"
                   className="tree-focus-btn"
-                  title="Focus (Enter)"
-                  aria-label={`Focus on ${node.name || 'unnamed node'}`}
+                  title={
+                    isFocusedRow
+                      ? 'Unfocus (Enter) - Show full tree in Diagram'
+                      : 'Focus (Enter) - Filter Diagram to this node'
+                  }
+                  aria-label={
+                    isFocusedRow
+                      ? `Unfocus ${node.name || 'unnamed node'}`
+                      : `Focus on ${node.name || 'unnamed node'} - filters Diagram tab`
+                  }
                   onClick={(e) => {
                     e.stopPropagation();
-                    onFocus?.(node);
+                    if (isFocusedRow) {
+                      onUnfocus?.();
+                    } else {
+                      onFocus?.(node);
+                    }
                   }}
                 >
-                  🔍
+                  {isFocusedRow || isRootAndNoFocus ? (
+                    <span className="crosshair">⌖</span>
+                  ) : (
+                    <span className="circle">○</span>
+                  )}
                 </button>
+
+                <span className="tree-node-label" style={{ flex: '0 1 auto' }}>
+                  {renderName(node.name)}
+                </span>
               </li>
             );
           })}

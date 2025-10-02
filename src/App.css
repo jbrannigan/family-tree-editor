@@ -67,11 +67,13 @@ body {
 /* Header */
 .app > header {
   position: relative;
-  padding: 20px 24px;
-  margin: -16px -16px 16px -16px;
-  background: linear-gradient(135deg, var(--heritage-navy) 0%, #2a4a8a 100%);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  margin: 0 0 16px 0;
+  background: var(--bg);
+  border-bottom: 1px solid #d0d7de;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 /* Remove coat of arms from header */
@@ -79,14 +81,21 @@ body {
   display: none;
 }
 
+.app > header .logo {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  margin-left: 19px;
+}
+
 .app > header h1 {
   position: relative;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: var(--heritage-navy);
   margin: 0;
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 39px;
+  font-weight: 400;
   letter-spacing: 0.3px;
+  font-family: 'Lora', Cambria, 'Times New Roman', Times, Georgia, serif;
   z-index: 1;
 }
 
