@@ -1,96 +1,116 @@
-/* TreeView.css — scoped styles for hover, focus, and indent guides */
+/* TreeView.css — Modern tree view styles */
 .tree-view {
-  --indent: 18px;
-  --row-h: 28px;
-  --guide: rgba(0, 0, 0, 0.03);
-  --hover-bg: rgba(0, 0, 0, 0.05);
-  --active-outline: #3b82f6;
-  --border: #e5e7eb;
+  --indent: 20px;
+  --row-h: 32px;
+  --hover-bg: rgba(45, 134, 89, 0.06);
+  --active-bg: rgba(26, 60, 153, 0.08);
+  --active-border: rgba(26, 60, 153, 0.3);
+  --focused-bg: rgba(26, 60, 153, 0.12);
+  --border: #d0d7de;
 }
 
-/* When a focus is active, hide indent guides altogether */
-.tree-view.is-focused {
-  --guide: transparent;
-}
-
-/* Scroll viewport (no guides here) */
+/* Scroll viewport */
 .tree-view .tree-container {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px;
+  border-radius: 4px;
+  padding: 4px;
   max-height: 60vh;
-  overflow: auto; /* vertical + horizontal as needed */
+  overflow: auto;
   background: var(--bg);
 }
 
-/* Paint indent guides only under the actual content width */
+/* Tree root container */
 .tree-view .tree-root {
-  display: inline-block; /* shrink to content width */
+  display: inline-block;
   width: max-content;
   margin: 0;
   padding: 0;
   list-style: none;
-  background: repeating-linear-gradient(
-    to right,
-    transparent 0 calc(var(--indent) - 1px),
-    var(--guide) calc(var(--indent) - 1px) var(--indent)
-  );
-  background-attachment: local; /* keep lines aligned during scroll */
 }
 
-/* Rows: one per line, with tight outline */
+/* Rows: modern, clean design */
 .tree-view .tree-row {
-  display: flex; /* block-level flex row */
-  width: max-content; /* outline hugs content width */
-  max-width: 100%; /* don’t overflow the pane */
+  display: flex;
+  width: max-content;
+  max-width: 100%;
   line-height: var(--row-h);
   min-height: var(--row-h);
-  border-radius: 6px;
-  padding: 2px 4px;
-  cursor: default;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
 }
 .tree-view .tree-row:hover {
   background: var(--hover-bg);
+  border-color: rgba(45, 134, 89, 0.2);
 }
 .tree-view .tree-row.is-active {
-  outline: 2px solid var(--active-outline);
-  outline-offset: 2px;
-  background: rgba(59, 130, 246, 0.06);
+  background: var(--active-bg);
+  border-color: var(--active-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .tree-view .tree-row.is-focused {
-  background: rgba(59, 130, 246, 0.08);
+  background: var(--focused-bg);
+  border-color: var(--active-border);
+  font-weight: 500;
 }
 
-/* Toggle + focus buttons */
-.tree-view .tree-toggle {
-  display: inline-flex;
+/* Tree connectors */
+.tree-view .tree-connector {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-  user-select: none;
-  cursor: pointer;
-  margin-right: 6px;
+  width: 20px;
+  flex-shrink: 0;
 }
-.tree-view .tree-toggle:hover {
-  background: #f9fafb;
+.tree-view .tree-branch {
+  color: #9ca3af;
+  font-size: 16px;
+  line-height: 1;
+  user-select: none;
+  font-family: monospace;
+  font-weight: normal;
 }
 
+/* Focus button */
 .tree-view .tree-focus-btn {
   cursor: pointer;
-  font-size: 14px;
   line-height: 1;
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: 8px;
+  border-radius: 4px;
+  padding: 2px 4px;
+  opacity: 0.4;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    background 0.15s ease;
+  color: #1a3c99;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  transform: translateY(-2px);
+}
+
+/* Different sizes for crosshair vs circle */
+.tree-view .tree-focus-btn .crosshair {
+  font-size: 22px;
+}
+.tree-view .tree-focus-btn .circle {
+  font-size: 16px;
 }
 .tree-view .tree-focus-btn:hover {
-  background: #f3f4f6;
+  background: rgba(26, 60, 153, 0.12);
+  opacity: 1;
+  transform: translateY(-2px) scale(1.1);
+  color: #1a3c99;
+}
+.tree-view .tree-row:hover .tree-focus-btn {
+  opacity: 0.7;
+}
+.tree-view .tree-row.is-active .tree-focus-btn {
+  opacity: 0.8;
 }
 
 /* Labels: elide overly long names nicely */
@@ -137,4 +157,11 @@
   margin: 4px 0 8px;
   font-size: 12px;
   color: #666;
+}
+
+/* Search input subtle focus */
+.tree-search:focus {
+  outline: none;
+  border-color: rgba(45, 134, 89, 0.4);
+  box-shadow: 0 0 0 2px rgba(45, 134, 89, 0.1);
 }

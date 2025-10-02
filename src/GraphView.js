@@ -1,5 +1,5 @@
 // GraphView.js
-import { useMemo } from 'react';
+import { useMemo, useState, useRef } from 'react';
 
 /**
  * Simple text wrapper that wraps on spaces, fallback to hard-break
@@ -253,20 +253,117 @@ export default function GraphView({ tree }) {
     return { ...out, totalWidth, totalHeight };
   }, [tree, config]);
 
+  // Pan and Zoom state
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const svgRef = useRef(null);
+
+  // Handle mouse wheel for zoom
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(0.1, Math.min(20, zoom * delta)); // Constrain zoom between 0.1x and 20x
+    setZoom(newZoom);
+  };
+
+  // Handle mouse down to start panning
+  const handleMouseDown = (e) => {
+    // Only pan with left mouse button
+    if (e.button !== 0) return;
+    e.preventDefault(); // Prevent text selection
+    setIsPanning(true);
+    setPanStart({ x: e.clientX, y: e.clientY });
+    e.currentTarget.style.cursor = 'grabbing';
+  };
+
+  // Handle mouse move for panning
+  const handleMouseMove = (e) => {
+    if (!isPanning) return;
+    // Scale pan speed based on canvas width with power function
+    const svgWidth = svgRef.current?.clientWidth || 800;
+    const ratio = totalWidth / svgWidth;
+    // Power of 1.5 gives good acceleration for large diagrams
+    const panScale = Math.pow(ratio, 1.5) * 0.8;
+    const dx = (e.clientX - panStart.x) * panScale;
+    const dy = (e.clientY - panStart.y) * panScale;
+    setPan({
+      x: pan.x + dx,
+      y: pan.y + dy,
+    });
+    setPanStart({ x: e.clientX, y: e.clientY });
+  };
+
+  // Handle mouse up to stop panning
+  const handleMouseUp = (e) => {
+    setIsPanning(false);
+    e.currentTarget.style.cursor = isPanning ? 'grab' : 'default';
+  };
+
+  // Reset zoom and pan
+  const handleReset = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
   return (
     <div className="graph-view" style={{ marginTop: 12, position: 'relative' }}>
-      {/* <h3 style={{ marginTop: 0 }}>SVG Tree Diagram</h3>
-      <br></br> */}
+      {/* Zoom controls */}
+      <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, display: 'flex', gap: 4 }}>
+        <button
+          className="btn"
+          onClick={() => setZoom((z) => Math.min(20, z * 1.2))}
+          title="Zoom in"
+          aria-label="Zoom in"
+          style={{ padding: '4px 8px', fontSize: '14px' }}
+        >
+          🔍+
+        </button>
+        <button
+          className="btn"
+          onClick={() => setZoom((z) => Math.max(0.1, z / 1.2))}
+          title="Zoom out"
+          aria-label="Zoom out"
+          style={{ padding: '4px 8px', fontSize: '14px' }}
+        >
+          🔍−
+        </button>
+        <button
+          className="btn"
+          onClick={handleReset}
+          title="Reset zoom and pan"
+          aria-label="Reset zoom and pan"
+          style={{ padding: '4px 8px', fontSize: '12px' }}
+        >
+          Reset Zoom
+        </button>
+      </div>
+
       <svg
+        ref={svgRef}
         id="graph-svg"
         width="100%"
         height={Math.min(totalHeight, 1200)}
         viewBox={`0 0 ${Math.max(totalWidth, 800)} ${totalHeight}`}
-        style={{ border: '1px solid #ddd', background: '#fafafa' }}
+        style={{
+          border: '1px solid #ddd',
+          background: '#fafafa',
+          cursor: isPanning ? 'grabbing' : 'grab',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
         preserveAspectRatio="xMinYMin meet"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
-        {links}
-        {nodes}
+        <g transform={`translate(${pan.x / zoom}, ${pan.y / zoom}) scale(${zoom})`}>
+          {links}
+          {nodes}
+        </g>
       </svg>
     </div>
   );
