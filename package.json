@@ -60,7 +60,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
     "playwright": "^1.55.0",
-    "playwright-core": "^1.55.0",
+    "playwright-core": "^1.56.1",
     "prettier": "^3.6.2",
     "serve": "^14.2.5",
     "vitest": "^3.2.4"
