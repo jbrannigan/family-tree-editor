@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Family Connections - Person Profile</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1e3a28 100%); min-height: 100vh; color: white; }
+    .phone-frame { max-width: 390px; margin: 20px auto; background: #0d1f15; border-radius: 40px; padding: 12px; box-shadow: 0 25px 80px rgba(0,0,0,0.5); }
+    .screen { background: linear-gradient(180deg, #0f2518 0%, #1a3325 100%); border-radius: 32px; min-height: 780px; overflow: hidden; position: relative; overflow-y: auto; }
+    .header-bg { height: 180px; background: linear-gradient(135deg, #2d5a3d 0%, #1a472a 100%); position: relative; }
+    .back-btn { position: absolute; top: 50px; left: 16px; background: rgba(0,0,0,0.3); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+    .edit-btn { position: absolute; top: 50px; right: 16px; background: rgba(0,0,0,0.3); border: none; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; }
+    .profile-card { margin: -80px 16px 0; background: rgba(30, 58, 40, 0.95); border-radius: 24px; padding: 20px; position: relative; border: 1px solid rgba(127, 219, 154, 0.2); }
+    .avatar-large { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #7fdb9a 0%, #4a9d6a 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; margin: -70px auto 16px; color: #0f2518; border: 4px solid #1a3325; }
+    .profile-name { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .profile-pronouns { text-align: center; font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
+    .profile-dates { text-align: center; font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+    .profile-dates .lifespan { color: #7fdb9a; }
+    .incomplete-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 193, 7, 0.15); color: #ffc107; padding: 6px 12px; border-radius: 20px; font-size: 12px; margin: 0 auto; }
+    .quick-stats { display: flex; justify-content: space-around; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .stat { text-align: center; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #7fdb9a; }
+    .stat-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; }
+    .section { margin: 20px 16px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
+    .section-action { font-size: 13px; color: #7fdb9a; background: none; border: none; cursor: pointer; }
+    .story-card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; margin-bottom: 12px; border-left: 3px solid #7fdb9a; }
+    .story-meta { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .story-author { font-size: 12px; color: #7fdb9a; }
+    .story-date { font-size: 12px; color: rgba(255,255,255,0.4); }
+    .story-content { font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.9); font-style: italic; }
+    .story-reactions { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .reaction { font-size: 13px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 4px; }
+    .trivia-card { background: rgba(127, 219, 154, 0.1); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+    .trivia-icon { font-size: 24px; margin-bottom: 8px; }
+    .trivia-fact { font-size: 15px; line-height: 1.4; margin-bottom: 8px; }
+    .trivia-source { font-size: 12px; color: rgba(255,255,255,0.4); }
+    .relationship-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .relationship-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; text-align: center; }
+    .rel-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #5a8a6a 0%, #3a6a4a 100%); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; margin: 0 auto 8px; color: white; }
+    .rel-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .rel-type { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .unknown-card { background: rgba(255, 193, 7, 0.1); border: 1px dashed rgba(255, 193, 7, 0.4); border-radius: 12px; padding: 12px; text-align: center; }
+    .unknown-card .rel-avatar { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+    .unknown-card .rel-name { color: #ffc107; }
+    .help-btn { margin-top: 8px; font-size: 11px; color: #7fdb9a; background: rgba(127, 219, 154, 0.15); border: none; padding: 4px 12px; border-radius: 12px; cursor: pointer; }
+    .external-link { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .external-icon { width: 40px; height: 40px; border-radius: 10px; background: #4285f4; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .external-info { flex: 1; }
+    .external-title { font-size: 14px; font-weight: 600; }
+    .external-desc { font-size: 12px; color: rgba(255,255,255,0.5); }
+    .external-arrow { color: rgba(255,255,255,0.3); font-size: 20px; }
+    .add-story-btn { width: 100%; padding: 16px; background: rgba(127, 219, 154, 0.15); border: 1px dashed rgba(127, 219, 154, 0.4); border-radius: 16px; color: #7fdb9a; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 100px; }
+    .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 366px; display: flex; justify-content: space-around; padding: 12px 0 24px; background: rgba(15, 37, 24, 0.98); border-top: 1px solid rgba(255,255,255,0.1); border-radius: 0 0 32px 32px; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: rgba(255,255,255,0.4); font-size: 10px; }
+    .nav-item.active { color: #7fdb9a; }
+    .nav-icon { font-size: 24px; }
+    .mockup-label { text-align: center; padding: 20px; color: rgba(255,255,255,0.6); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <p class="mockup-label">MOCKUP: Person Profile with Stories, Fun Facts & Relationships</p>
+  <div class="phone-frame">
+    <div class="screen">
+      <div class="header-bg"><button class="back-btn">←</button><button class="edit-btn">Edit</button></div>
+      <div class="profile-card">
+        <div class="avatar-large">EM</div>
+        <h1 class="profile-name">Ellen McGinty</h1>
+        <p class="profile-pronouns">she/her</p>
+        <p class="profile-dates"><span class="lifespan">1872 - 1954</span> · Lived 82 years</p>
+        <div style="text-align: center;"><span class="incomplete-badge">⚠️ Missing: Birth location</span></div>
+        <div class="quick-stats">
+          <div class="stat"><div class="stat-value">47</div><div class="stat-label">Descendants</div></div>
+          <div class="stat"><div class="stat-value">5</div><div class="stat-label">Stories</div></div>
+          <div class="stat"><div class="stat-value">3</div><div class="stat-label">Fun Facts</div></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-header"><span class="section-title">Stories & Memories</span><button class="section-action">See All →</button></div>
+        <div class="story-card">
+          <div class="story-meta"><span class="story-author">Added by Uncle Tom</span><span class="story-date">Dec 2024</span></div>
+          <p class="story-content">"Ellen was the first McGinty to come to America. She arrived at Ellis Island in 1892 with just $20 in her pocket and a letter from her cousin in Boston. She always said 'I left Ireland with nothing but hope, and found everything.'"</p>
+          <div class="story-reactions"><span class="reaction">❤️ 12</span><span class="reaction">💬 3 comments</span></div>
+        </div>
+        <div class="story-card">
+          <div class="story-meta"><span class="story-author">Added by Cousin Mary</span><span class="story-date">Nov 2024</span></div>
+          <p class="story-content">"Grandma Ellen made the best soda bread. Every Sunday morning the whole house would smell like fresh bread and strong tea. She'd always say 'A house without bread is no home at all.'"</p>
+          <div class="story-reactions"><span class="reaction">❤️ 8</span><span class="reaction">💬 1 comment</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-header"><span class="section-title">Fun Facts</span><button class="section-action">Add Fact</button></div>
+        <div class="trivia-card"><div class="trivia-icon">🇮🇪</div><p class="trivia-fact">Ellen could name all 32 counties of Ireland from memory, and would quiz her grandchildren at dinner.</p><p class="trivia-source">Added by Cousin Mike</p></div>
+        <div class="trivia-card"><div class="trivia-icon">🍀</div><p class="trivia-fact">Her lucky number was 7 — she had 7 children, arrived on the 7th of March, and lived at 77 Oak Street.</p><p class="trivia-source">Added by Aunt Sarah</p></div>
+      </div>
+      <div class="section">
+        <div class="section-header"><span class="section-title">Immediate Family</span><button class="section-action">View Tree</button></div>
+        <div class="relationship-grid">
+          <div class="unknown-card"><div class="rel-avatar">?</div><div class="rel-name">Unknown</div><div class="rel-type">Father</div><button class="help-btn">Help Research</button></div>
+          <div class="unknown-card"><div class="rel-avatar">?</div><div class="rel-name">Unknown</div><div class="rel-type">Mother</div><button class="help-btn">Help Research</button></div>
+          <div class="relationship-card"><div class="rel-avatar">PM</div><div class="rel-name">Patrick McGinty</div><div class="rel-type">Spouse (1894-1954)</div></div>
+          <div class="relationship-card"><div class="rel-avatar">JM</div><div class="rel-name">James McGinty</div><div class="rel-type">Son</div></div>
+          <div class="relationship-card"><div class="rel-avatar">MM</div><div class="rel-name">Mary McGinty</div><div class="rel-type">Daughter</div></div>
+          <div class="relationship-card"><div class="rel-avatar">+5</div><div class="rel-name">5 more</div><div class="rel-type">Children</div></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-header"><span class="section-title">External Sources</span></div>
+        <div class="external-link"><div class="external-icon">🌳</div><div class="external-info"><div class="external-title">FamilySearch</div><div class="external-desc">View full record & sources</div></div><span class="external-arrow">→</span></div>
+      </div>
+      <div class="section"><button class="add-story-btn">+ Add a Memory About Ellen</button></div>
+      <nav class="nav-bar">
+        <div class="nav-item"><span class="nav-icon">📱</span><span>Connect</span></div>
+        <div class="nav-item active"><span class="nav-icon">🌳</span><span>Tree</span></div>
+        <div class="nav-item"><span class="nav-icon">📖</span><span>Stories</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span><span>Profile</span></div>
+      </nav>
+    </div>
+  </div>
+</body>
+</html>

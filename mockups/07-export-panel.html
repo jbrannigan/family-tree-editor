@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Connections - Export Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1a14; min-height: 100vh; color: white; display: flex; align-items: center; justify-content: center; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .export-modal { background: linear-gradient(180deg, #1a2920 0%, #162018 100%); border-radius: 20px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(127, 219, 154, 0.2); box-shadow: 0 25px 80px rgba(0,0,0,0.5); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .modal-title { font-size: 20px; font-weight: 700; }
+    .close-btn { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 28px; cursor: pointer; line-height: 1; }
+    .close-btn:hover { color: white; }
+    .modal-body { padding: 24px; }
+    .section { margin-bottom: 28px; }
+    .section:last-child { margin-bottom: 0; }
+    .section-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .format-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .format-option { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; }
+    .format-option:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+    .format-option.selected { background: rgba(127, 219, 154, 0.15); border-color: #7fdb9a; }
+    .format-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .format-icon { font-size: 24px; }
+    .format-name { font-size: 16px; font-weight: 600; }
+    .format-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.4; }
+    .format-checkbox { width: 20px; height: 20px; border-radius: 4px; border: 2px solid rgba(255,255,255,0.3); margin-left: auto; display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent; }
+    .format-option.selected .format-checkbox { background: #7fdb9a; border-color: #7fdb9a; color: #0f1a14; }
+    .size-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .size-option { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .size-option:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+    .size-option.selected { background: rgba(127, 219, 154, 0.15); border-color: #7fdb9a; }
+    .size-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .size-dimensions { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .size-option.selected .size-name { color: #7fdb9a; }
+    .arch-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .arch-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+    .arch-badge { font-size: 10px; background: rgba(255, 193, 7, 0.2); color: #ffc107; padding: 3px 8px; border-radius: 8px; }
+    .scope-options { display: flex; gap: 12px; }
+    .scope-option { flex: 1; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; }
+    .scope-option:hover { background: rgba(255,255,255,0.08); }
+    .scope-option.selected { background: rgba(127, 219, 154, 0.15); border-color: #7fdb9a; }
+    .scope-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; }
+    .scope-option.selected .scope-radio { border-color: #7fdb9a; }
+    .scope-option.selected .scope-radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #7fdb9a; }
+    .scope-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .scope-desc { font-size: 12px; color: rgba(255,255,255,0.5); }
+    .option-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .option-row:last-child { border-bottom: none; }
+    .option-label { font-size: 14px; }
+    .option-hint { font-size: 12px; color: rgba(255,255,255,0.5); }
+    .toggle { width: 44px; height: 24px; background: rgba(255,255,255,0.2); border-radius: 12px; position: relative; cursor: pointer; transition: all 0.2s; }
+    .toggle.active { background: #7fdb9a; }
+    .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: all 0.2s; }
+    .toggle.active::after { left: 22px; }
+    .modal-footer { display: flex; gap: 12px; padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); border-radius: 0 0 20px 20px; }
+    .btn { flex: 1; padding: 14px 24px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
+    .btn-primary { background: linear-gradient(135deg, #7fdb9a 0%, #4a9d6a 100%); color: #0f1a14; }
+    .btn:hover { filter: brightness(1.1); }
+    .preview-estimate { background: rgba(127, 219, 154, 0.1); border-radius: 10px; padding: 12px 16px; margin-top: 16px; display: flex; align-items: center; gap: 12px; }
+    .estimate-icon { font-size: 20px; }
+    .estimate-text { font-size: 13px; color: rgba(255,255,255,0.7); }
+    .estimate-text strong { color: #7fdb9a; }
+    .mockup-label { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 20px; font-size: 12px; color: rgba(255,255,255,0.7); z-index: 200; }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">MOCKUP: Export Panel with PDF Architectural Sizes</div>
+  <div class="modal-backdrop">
+    <div class="export-modal">
+      <div class="modal-header"><h2 class="modal-title">Export Family Graph</h2><button class="close-btn">×</button></div>
+      <div class="modal-body">
+        <div class="section"><div class="section-title">Export Format</div><div class="format-grid">
+          <div class="format-option selected" onclick="toggleFormat(this)"><div class="format-header"><span class="format-icon">📄</span><span class="format-name">PDF</span><span class="format-checkbox">✓</span></div><div class="format-desc">Print-ready document with flowing tree visualization</div></div>
+          <div class="format-option" onclick="toggleFormat(this)"><div class="format-header"><span class="format-icon">🖼️</span><span class="format-name">SVG</span><span class="format-checkbox">✓</span></div><div class="format-desc">Scalable vector for editing or web use</div></div>
+          <div class="format-option" onclick="toggleFormat(this)"><div class="format-header"><span class="format-icon">🌐</span><span class="format-name">HTML</span><span class="format-checkbox">✓</span></div><div class="format-desc">Standalone interactive tree viewer</div></div>
+          <div class="format-option" onclick="toggleFormat(this)"><div class="format-header"><span class="format-icon">📝</span><span class="format-name">JSON</span><span class="format-checkbox">✓</span></div><div class="format-desc">Raw data for backup or other tools</div></div>
+        </div></div>
+        <div class="section" id="pdfSizeSection">
+          <div class="arch-header"><div class="section-title">PDF Size</div><span class="arch-badge">🖨️ Print-shop ready</span></div>
+          <div class="section-title" style="font-size: 11px; margin-top: 16px; color: rgba(255,255,255,0.4);">Standard Sizes</div>
+          <div class="size-grid" style="margin-bottom: 16px;">
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">Letter</div><div class="size-dimensions">8.5" × 11"</div></div>
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">Legal</div><div class="size-dimensions">8.5" × 14"</div></div>
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">Tabloid</div><div class="size-dimensions">11" × 17"</div></div>
+          </div>
+          <div class="section-title" style="font-size: 11px; color: rgba(255,255,255,0.4);">Architectural Sizes (Large Format)</div>
+          <div class="size-grid">
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">ARCH A</div><div class="size-dimensions">9" × 12"</div></div>
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">ARCH B</div><div class="size-dimensions">12" × 18"</div></div>
+            <div class="size-option selected" onclick="selectSize(this)"><div class="size-name">ARCH C</div><div class="size-dimensions">18" × 24"</div></div>
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">ARCH D</div><div class="size-dimensions">24" × 36"</div></div>
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">ARCH E</div><div class="size-dimensions">36" × 48"</div></div>
+            <div class="size-option" onclick="selectSize(this)"><div class="size-name">Custom</div><div class="size-dimensions">Set dimensions</div></div>
+          </div>
+          <div class="preview-estimate"><span class="estimate-icon">📏</span><span class="estimate-text"><strong>ARCH C (18" × 24")</strong> fits ~150 people comfortably. Great for framing or reunion display.</span></div>
+        </div>
+        <div class="section"><div class="section-title">Scope</div><div class="scope-options">
+          <div class="scope-option selected" onclick="selectScope(this)"><div class="scope-radio"></div><div class="scope-title">Full Graph</div><div class="scope-desc">All 247 people in the family</div></div>
+          <div class="scope-option" onclick="selectScope(this)"><div class="scope-radio"></div><div class="scope-title">Focused View</div><div class="scope-desc">Ellen McGinty + descendants only</div></div>
+        </div></div>
+        <div class="section"><div class="section-title">Options</div>
+          <div class="option-row"><div><div class="option-label">Include dates</div><div class="option-hint">Birth and death years</div></div><div class="toggle active" onclick="this.classList.toggle('active')"></div></div>
+          <div class="option-row"><div><div class="option-label">Include stories count</div><div class="option-hint">Show number of attached stories</div></div><div class="toggle" onclick="this.classList.toggle('active')"></div></div>
+          <div class="option-row"><div><div class="option-label">Mark incomplete entries</div><div class="option-hint">Visual indicator for research needed</div></div><div class="toggle active" onclick="this.classList.toggle('active')"></div></div>
+          <div class="option-row"><div><div class="option-label">High resolution (300 DPI)</div><div class="option-hint">For professional printing</div></div><div class="toggle active" onclick="this.classList.toggle('active')"></div></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary">Cancel</button><button class="btn btn-primary">Export PDF</button></div>
+    </div>
+  </div>
+  <script>
+    function toggleFormat(el) { el.classList.toggle('selected'); }
+    function selectSize(el) { document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('selected')); el.classList.add('selected'); }
+    function selectScope(el) { document.querySelectorAll('.scope-option').forEach(opt => opt.classList.remove('selected')); el.classList.add('selected'); }
+  </script>
+</body>
+</html>

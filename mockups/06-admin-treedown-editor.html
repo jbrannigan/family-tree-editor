@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Connections - Admin TreeDown Editor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1a14; min-height: 100vh; color: white; }
+    .app-container { display: flex; flex-direction: column; height: 100vh; }
+    .top-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #1a2920; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .nav-left { display: flex; align-items: center; gap: 16px; }
+    .back-btn { background: none; border: none; color: #7fdb9a; font-size: 20px; cursor: pointer; padding: 8px; }
+    .page-title { font-size: 18px; font-weight: 600; }
+    .admin-badge { background: rgba(255, 193, 7, 0.2); color: #ffc107; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .nav-right { display: flex; gap: 12px; }
+    .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; }
+    .nav-btn-secondary { background: rgba(255,255,255,0.1); color: white; }
+    .nav-btn-primary { background: #7fdb9a; color: #0f1a14; font-weight: 600; }
+    .nav-btn:hover { filter: brightness(1.1); }
+    .toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 24px; background: #162018; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
+    .toolbar-group { display: flex; gap: 4px; padding-right: 12px; border-right: 1px solid rgba(255,255,255,0.1); }
+    .toolbar-group:last-child { border-right: none; }
+    .tool-btn { padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: rgba(255,255,255,0.7); font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .tool-btn:hover { background: rgba(127, 219, 154, 0.15); border-color: rgba(127, 219, 154, 0.3); color: #7fdb9a; }
+    .tool-btn.active { background: rgba(127, 219, 154, 0.2); border-color: #7fdb9a; color: #7fdb9a; }
+    .toolbar-spacer { flex: 1; }
+    .status-text { font-size: 12px; color: rgba(255,255,255,0.5); }
+    .status-saved { color: #7fdb9a; }
+    .main-content { display: flex; flex: 1; overflow: hidden; }
+    .editor-pane { flex: 1; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.1); }
+    .editor-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .editor-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
+    .line-count { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .editor-wrapper { flex: 1; display: flex; overflow: hidden; }
+    .line-numbers { width: 50px; padding: 16px 8px; background: rgba(0,0,0,0.2); text-align: right; font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.3); user-select: none; overflow: hidden; }
+    .editor-textarea { flex: 1; padding: 16px; background: transparent; border: none; color: white; font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 13px; line-height: 1.6; resize: none; outline: none; white-space: pre; overflow: auto; }
+    .editor-textarea::placeholder { color: rgba(255,255,255,0.3); }
+    .preview-pane { width: 400px; display: flex; flex-direction: column; background: rgba(0,0,0,0.1); }
+    .preview-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .preview-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
+    .preview-count { font-size: 11px; color: #7fdb9a; background: rgba(127, 219, 154, 0.15); padding: 3px 8px; border-radius: 8px; }
+    .preview-content { flex: 1; padding: 16px; overflow-y: auto; }
+    .preview-person { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 4px; border-radius: 8px; font-size: 14px; transition: background 0.2s; }
+    .preview-person:hover { background: rgba(255,255,255,0.05); }
+    .preview-indent { color: rgba(255,255,255,0.2); font-family: monospace; font-size: 12px; }
+    .preview-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #5a8a6a 0%, #3a6a4a 100%); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+    .preview-avatar.couple { background: linear-gradient(135deg, #8a5a6a 0%, #6a3a4a 100%); }
+    .preview-name { flex: 1; }
+    .help-panel { padding: 16px; background: rgba(127, 219, 154, 0.05); border-top: 1px solid rgba(127, 219, 154, 0.2); }
+    .help-title { font-size: 12px; font-weight: 600; color: #7fdb9a; margin-bottom: 8px; }
+    .help-text { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+    .help-text code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+    .validation-bar { display: flex; align-items: center; gap: 12px; padding: 10px 24px; background: rgba(255, 193, 7, 0.1); border-top: 1px solid rgba(255, 193, 7, 0.3); }
+    .validation-icon { font-size: 16px; }
+    .validation-text { font-size: 13px; color: #ffc107; }
+    .validation-bar.success { background: rgba(127, 219, 154, 0.1); border-color: rgba(127, 219, 154, 0.3); }
+    .validation-bar.success .validation-text { color: #7fdb9a; }
+    .mockup-label { text-align: center; padding: 10px; background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.6); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">MOCKUP: Admin TreeDown Editor (Desktop View - Power User Feature)</div>
+  <div class="app-container">
+    <nav class="top-nav"><div class="nav-left"><button class="back-btn">←</button><span class="page-title">TreeDown Editor</span><span class="admin-badge">Admin Only</span></div><div class="nav-right"><button class="nav-btn nav-btn-secondary">Import File</button><button class="nav-btn nav-btn-secondary">Export</button><button class="nav-btn nav-btn-primary">Save to Graph</button></div></nav>
+    <div class="toolbar"><div class="toolbar-group"><button class="tool-btn" title="Indent">Tab →</button><button class="tool-btn" title="Outdent">← Tab</button><button class="tool-btn" title="Clean Up">Clean Up</button></div><div class="toolbar-group"><button class="tool-btn active">Soft Wrap</button><button class="tool-btn">Hard Wrap</button></div><div class="toolbar-group"><button class="tool-btn">Validate</button><button class="tool-btn">Find Duplicates</button></div><span class="toolbar-spacer"></span><span class="status-text status-saved">✓ Auto-saved 2 min ago</span></div>
+    <div class="main-content">
+      <div class="editor-pane">
+        <div class="editor-header"><span class="editor-title">TreeDown Source</span><span class="line-count">247 people · 18 lines</span></div>
+        <div class="editor-wrapper">
+          <div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18</div>
+          <textarea class="editor-textarea" spellcheck="false">Ellen McGinty (1872-1954)
+    James McGinty (1895-1972)
+        Robert McGinty (1920-1998)
+            Jennifer McGinty (1952-)
+                Sarah McGinty (1985-)
+            Michael McGinty (1955-)
+        Helen McGinty (1922-2010)
+    Mary Ellena McGinty (1897-1981)
+        Catherine Walsh (1924-2015)
+            Thomas Walsh (1950-)
+            Margaret Walsh (1952-)
+    Patrick McGinty Jr (1899-1968)
+        Thomas McGinty (1925-2001)
+            David McGinty (1960-)
+        Elizabeth Barrett (1928-)
+            Kevin Fitzgerald (1955-)
+            Susan Fitzgerald (1958-)
+Patrick McGinty & Margaret O'Brien (spouses)</textarea>
+        </div>
+      </div>
+      <div class="preview-pane">
+        <div class="preview-header"><span class="preview-title">Live Preview</span><span class="preview-count">18 people parsed</span></div>
+        <div class="preview-content">
+          <div class="preview-person"><div class="preview-avatar">EM</div><span class="preview-name">Ellen McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">└─</span><div class="preview-avatar">JM</div><span class="preview-name">James McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">&nbsp;&nbsp;&nbsp;└─</span><div class="preview-avatar">RM</div><span class="preview-name">Robert McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─</span><div class="preview-avatar">JM</div><span class="preview-name">Jennifer McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─</span><div class="preview-avatar">SM</div><span class="preview-name">Sarah McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─</span><div class="preview-avatar">MM</div><span class="preview-name">Michael McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">&nbsp;&nbsp;&nbsp;└─</span><div class="preview-avatar">HM</div><span class="preview-name">Helen McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">└─</span><div class="preview-avatar">ME</div><span class="preview-name">Mary Ellena McGinty</span></div>
+          <div class="preview-person"><span class="preview-indent">└─</span><div class="preview-avatar">PJ</div><span class="preview-name">Patrick McGinty Jr</span></div>
+          <div class="preview-person" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);"><div class="preview-avatar couple">P&M</div><span class="preview-name">Patrick McGinty & Margaret O'Brien</span></div>
+        </div>
+        <div class="help-panel"><div class="help-title">TreeDown Format</div><div class="help-text">• One person per line<br>• Indent children with <code>Tab</code> or 4 spaces<br>• Dates in parentheses: <code>(1872-1954)</code><br>• Couples with <code>&</code>: <code>John & Mary</code><br>• Will split couples into separate people on import</div></div>
+      </div>
+    </div>
+    <div class="validation-bar success"><span class="validation-icon">✓</span><span class="validation-text">All 18 entries valid. Ready to save to Family Graph.</span></div>
+  </div>
+</body>
+</html>
