@@ -1,109 +1,544 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Family Connections - Flowing Tree Visualization</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #0f2518 0%, #1a3325 50%, #0d1f15 100%); min-height: 100vh; color: white; overflow: hidden; }
-    .container { width: 100%; height: 100vh; position: relative; }
-    .header { position: absolute; top: 0; left: 0; right: 0; padding: 20px 24px; background: linear-gradient(180deg, rgba(15, 37, 24, 0.95) 0%, transparent 100%); z-index: 100; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 20px; font-weight: 700; color: #7fdb9a; }
-    .header-actions { display: flex; gap: 12px; }
-    .header-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; }
-    .tree-canvas { width: 100%; height: 100%; }
-    .node { cursor: pointer; transition: transform 0.3s ease; }
-    .node:hover { transform: scale(1.05); }
-    .node-circle { transition: all 0.3s ease; }
-    .node:hover .node-circle { filter: brightness(1.2); }
-    .node-glow { animation: pulse 3s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
-    .node-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 600; fill: white; text-anchor: middle; }
-    .node-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; fill: rgba(255,255,255,0.8); text-anchor: middle; }
-    .node-years { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10px; fill: rgba(255,255,255,0.5); text-anchor: middle; }
-    .connection { fill: none; stroke: url(#connectionGradient); stroke-width: 2; opacity: 0.6; }
-    .connection-animated { stroke-dasharray: 8 4; animation: flowLine 2s linear infinite; }
-    @keyframes flowLine { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -24; } }
-    .spouse-connection { stroke: #ff69b4; stroke-width: 2; stroke-dasharray: 4 4; opacity: 0.5; }
-    .focus-ring { fill: none; stroke: #7fdb9a; stroke-width: 3; opacity: 0; transition: opacity 0.3s ease; }
-    .node.selected .focus-ring { opacity: 1; animation: focusPulse 1.5s ease-in-out infinite; }
-    @keyframes focusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    .node-unknown .node-circle { fill: url(#unknownGradient); stroke: #ffc107; stroke-width: 2; stroke-dasharray: 4 4; }
-    .info-panel { position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(30, 58, 40, 0.95); border-radius: 20px; padding: 20px; border: 1px solid rgba(127, 219, 154, 0.3); backdrop-filter: blur(10px); transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
-    .info-panel.visible { transform: translateY(0); opacity: 1; }
-    .info-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
-    .info-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #7fdb9a 0%, #4a9d6a 100%); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #0f2518; }
-    .info-name { font-size: 20px; font-weight: 700; }
-    .info-dates { font-size: 13px; color: rgba(255,255,255,0.6); }
-    .info-actions { display: flex; gap: 12px; margin-top: 16px; }
-    .info-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
-    .info-btn-primary { background: linear-gradient(135deg, #7fdb9a 0%, #4a9d6a 100%); color: #0f2518; }
-    .info-btn-secondary { background: rgba(255,255,255,0.1); color: white; }
-    .close-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: rgba(255,255,255,0.5); font-size: 24px; cursor: pointer; }
-    .legend { position: absolute; top: 80px; right: 20px; background: rgba(30, 58, 40, 0.9); border-radius: 12px; padding: 16px; font-size: 12px; border: 1px solid rgba(127, 219, 154, 0.2); }
-    .legend-title { font-weight: 600; margin-bottom: 12px; color: #7fdb9a; }
-    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: rgba(255,255,255,0.7); }
-    .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
-    .legend-line { width: 24px; height: 2px; }
-    .mockup-label { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; font-size: 12px; color: rgba(255,255,255,0.7); z-index: 200; }
-    .zoom-controls { position: absolute; bottom: 100px; right: 20px; display: flex; flex-direction: column; gap: 8px; }
-    .zoom-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(30, 58, 40, 0.9); border: 1px solid rgba(127, 219, 154, 0.3); color: white; font-size: 20px; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <div class="mockup-label">MOCKUP: Flowing Tree Visualization with Organic Layout</div>
-  <div class="container">
-    <header class="header"><h1>McGinty Family Tree</h1><div class="header-actions"><button class="header-btn">Filter</button><button class="header-btn">Search</button></div></header>
-    <svg class="tree-canvas" viewBox="0 0 1200 800">
-      <defs>
-        <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7fdb9a;stop-opacity:0.8" /><stop offset="100%" style="stop-color:#4a9d6a;stop-opacity:0.4" /></linearGradient>
-        <radialGradient id="nodeGradient" cx="30%" cy="30%" r="70%"><stop offset="0%" style="stop-color:#9aebaf" /><stop offset="100%" style="stop-color:#4a9d6a" /></radialGradient>
-        <radialGradient id="unknownGradient" cx="30%" cy="30%" r="70%"><stop offset="0%" style="stop-color:#ffe082" /><stop offset="100%" style="stop-color:#bf8f00" /></radialGradient>
-        <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:#7fdb9a;stop-opacity:0.4" /><stop offset="100%" style="stop-color:#7fdb9a;stop-opacity:0" /></radialGradient>
-        <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      </defs>
-      <g class="connections">
-        <path class="connection connection-animated" d="M 600,200 C 600,280 400,280 400,360" />
-        <path class="connection connection-animated" d="M 600,200 C 600,280 600,280 600,360" />
-        <path class="connection connection-animated" d="M 600,200 C 600,280 800,280 800,360" />
-        <path class="connection" d="M 400,360 C 400,440 300,440 300,520" />
-        <path class="connection" d="M 400,360 C 400,440 500,440 500,520" />
-        <path class="connection" d="M 600,360 C 600,440 600,440 600,520" />
-        <path class="connection" d="M 800,360 C 800,440 700,440 700,520" />
-        <path class="connection" d="M 800,360 C 800,440 900,440 900,520" />
-        <path class="connection" d="M 300,520 C 300,600 250,600 250,680" />
-        <path class="connection" d="M 300,520 C 300,600 350,600 350,680" />
-        <path class="spouse-connection" d="M 560,200 L 640,200" />
-      </g>
-      <g class="node node-unknown" transform="translate(500, 80)" onclick="showInfo('unknown-father')"><circle class="node-circle" r="28" /><text class="node-text" dy="5">?</text><text class="node-label" dy="50">Father</text><text class="node-years" dy="65">Unknown</text></g>
-      <g class="node node-unknown" transform="translate(700, 80)" onclick="showInfo('unknown-mother')"><circle class="node-circle" r="28" /><text class="node-text" dy="5">?</text><text class="node-label" dy="50">Mother</text><text class="node-years" dy="65">Unknown</text></g>
-      <g class="node selected" transform="translate(600, 200)" onclick="showInfo('ellen')"><circle class="node-glow" r="45" fill="url(#glowGradient)" /><circle class="focus-ring" r="48" /><circle class="node-circle" r="40" fill="url(#nodeGradient)" filter="url(#glow)" /><text class="node-text" dy="5">EM</text><text class="node-label" dy="60">Ellen McGinty</text><text class="node-years" dy="75">1872-1954</text></g>
-      <g class="node" transform="translate(400, 360)" onclick="showInfo('james')"><circle class="node-glow" r="38" fill="url(#glowGradient)" /><circle class="node-circle" r="35" fill="url(#nodeGradient)" /><text class="node-text" dy="5">JM</text><text class="node-label" dy="55">James</text><text class="node-years" dy="70">1895-1972</text></g>
-      <g class="node" transform="translate(600, 360)" onclick="showInfo('mary')"><circle class="node-glow" r="38" fill="url(#glowGradient)" /><circle class="node-circle" r="35" fill="url(#nodeGradient)" /><text class="node-text" dy="5">MM</text><text class="node-label" dy="55">Mary</text><text class="node-years" dy="70">1897-1981</text></g>
-      <g class="node" transform="translate(800, 360)" onclick="showInfo('patrick-jr')"><circle class="node-glow" r="38" fill="url(#glowGradient)" /><circle class="node-circle" r="35" fill="url(#nodeGradient)" /><text class="node-text" dy="5">PJ</text><text class="node-label" dy="55">Patrick Jr</text><text class="node-years" dy="70">1899-1968</text></g>
-      <g class="node" transform="translate(300, 520)"><circle class="node-circle" r="30" fill="url(#nodeGradient)" /><text class="node-text" dy="4">RM</text><text class="node-label" dy="48">Robert</text><text class="node-years" dy="62">1920-1998</text></g>
-      <g class="node" transform="translate(500, 520)"><circle class="node-circle" r="30" fill="url(#nodeGradient)" /><text class="node-text" dy="4">HM</text><text class="node-label" dy="48">Helen</text><text class="node-years" dy="62">1922-2010</text></g>
-      <g class="node" transform="translate(600, 520)"><circle class="node-circle" r="30" fill="url(#nodeGradient)" /><text class="node-text" dy="4">CM</text><text class="node-label" dy="48">Catherine</text><text class="node-years" dy="62">1924-2015</text></g>
-      <g class="node" transform="translate(700, 520)"><circle class="node-circle" r="30" fill="url(#nodeGradient)" /><text class="node-text" dy="4">TM</text><text class="node-label" dy="48">Thomas</text><text class="node-years" dy="62">1925-2001</text></g>
-      <g class="node" transform="translate(900, 520)"><circle class="node-circle" r="30" fill="url(#nodeGradient)" /><text class="node-text" dy="4">EB</text><text class="node-label" dy="48">Elizabeth</text><text class="node-years" dy="62">1928-</text></g>
-      <g class="node" transform="translate(250, 680)"><circle class="node-circle" r="25" fill="url(#nodeGradient)" /><text class="node-text" style="font-size:10px" dy="4">JM</text><text class="node-label" dy="42">Jennifer</text><text class="node-years" dy="55">1952-</text></g>
-      <g class="node" transform="translate(350, 680)"><circle class="node-circle" r="25" fill="url(#nodeGradient)" /><text class="node-text" style="font-size:10px" dy="4">MM</text><text class="node-label" dy="42">Michael</text><text class="node-years" dy="55">1955-</text></g>
-      <circle r="2" fill="#7fdb9a" opacity="0.3"><animate attributeName="cy" values="800;0" dur="20s" repeatCount="indefinite" /><animate attributeName="cx" values="100;150;100" dur="10s" repeatCount="indefinite" /></circle>
-      <circle r="1.5" fill="#7fdb9a" opacity="0.2"><animate attributeName="cy" values="800;0" dur="25s" repeatCount="indefinite" begin="5s" /><animate attributeName="cx" values="1000;1050;1000" dur="12s" repeatCount="indefinite" /></circle>
-    </svg>
-    <div class="legend"><div class="legend-title">Legend</div><div class="legend-item"><div class="legend-dot" style="background: linear-gradient(135deg, #7fdb9a, #4a9d6a)"></div><span>Known Person</span></div><div class="legend-item"><div class="legend-dot" style="background: linear-gradient(135deg, #ffe082, #bf8f00); border: 1px dashed #ffc107;"></div><span>Unknown / Research Needed</span></div><div class="legend-item"><div class="legend-line" style="background: linear-gradient(90deg, #7fdb9a, #4a9d6a);"></div><span>Parent-Child</span></div><div class="legend-item"><div class="legend-line" style="background: #ff69b4;"></div><span>Spouse</span></div></div>
-    <div class="zoom-controls"><button class="zoom-btn">+</button><button class="zoom-btn">−</button><button class="zoom-btn">⟲</button></div>
-    <div class="info-panel" id="infoPanel"><button class="close-btn" onclick="hideInfo()">×</button><div class="info-header"><div class="info-avatar" id="infoAvatar">EM</div><div><div class="info-name" id="infoName">Ellen McGinty</div><div class="info-dates" id="infoDates">1872 - 1954 · she/her</div></div></div><p id="infoStory" style="font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.5; margin-bottom: 16px;">The first McGinty to come to America. Arrived at Ellis Island in 1892 with $20 and endless hope.</p><div class="info-actions"><button class="info-btn info-btn-primary">View Full Profile</button><button class="info-btn info-btn-secondary">Find My Connection</button></div></div>
-  </div>
-  <script>
-    const people = {
-      'ellen': { initials: 'EM', name: 'Ellen McGinty', dates: '1872 - 1954 · she/her', story: 'The first McGinty to come to America. Arrived at Ellis Island in 1892 with $20 and endless hope.' },
-      'james': { initials: 'JM', name: 'James McGinty', dates: '1895 - 1972 · he/him', story: 'Eldest son of Ellen. Worked as a carpenter and built many homes in the Boston area.' },
-      'unknown-father': { initials: '?', name: "Ellen's Father", dates: 'Unknown', story: 'We don\'t know who Ellen\'s father was. Can you help research this?' },
-    };
-    function showInfo(personId) { const person = people[personId] || people['ellen']; document.getElementById('infoAvatar').textContent = person.initials; document.getElementById('infoName').textContent = person.name; document.getElementById('infoDates').textContent = person.dates; document.getElementById('infoStory').textContent = person.story; document.getElementById('infoPanel').classList.add('visible'); }
-    function hideInfo() { document.getElementById('infoPanel').classList.remove('visible'); }
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Family Connections - Flowing Tree Visualization</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #0f2518 0%, #1a3325 50%, #0d1f15 100%);
+        min-height: 100vh;
+        color: white;
+        overflow: hidden;
+      }
+      .container {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+      }
+      .header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px 24px;
+        background: linear-gradient(180deg, rgba(15, 37, 24, 0.95) 0%, transparent 100%);
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .header h1 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #7fdb9a;
+      }
+      .header-actions {
+        display: flex;
+        gap: 12px;
+      }
+      .header-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .tree-canvas {
+        width: 100%;
+        height: 100%;
+      }
+      .node {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .node:hover {
+        transform: scale(1.05);
+      }
+      .node-circle {
+        transition: all 0.3s ease;
+      }
+      .node:hover .node-circle {
+        filter: brightness(1.2);
+      }
+      .node-glow {
+        animation: pulse 3s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+      .node-text {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        fill: white;
+        text-anchor: middle;
+      }
+      .node-label {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 12px;
+        fill: rgba(255, 255, 255, 0.8);
+        text-anchor: middle;
+      }
+      .node-years {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 10px;
+        fill: rgba(255, 255, 255, 0.5);
+        text-anchor: middle;
+      }
+      .connection {
+        fill: none;
+        stroke: url(#connectionGradient);
+        stroke-width: 2;
+        opacity: 0.6;
+      }
+      .connection-animated {
+        stroke-dasharray: 8 4;
+        animation: flowLine 2s linear infinite;
+      }
+      @keyframes flowLine {
+        0% {
+          stroke-dashoffset: 0;
+        }
+        100% {
+          stroke-dashoffset: -24;
+        }
+      }
+      .spouse-connection {
+        stroke: #ff69b4;
+        stroke-width: 2;
+        stroke-dasharray: 4 4;
+        opacity: 0.5;
+      }
+      .focus-ring {
+        fill: none;
+        stroke: #7fdb9a;
+        stroke-width: 3;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .node.selected .focus-ring {
+        opacity: 1;
+        animation: focusPulse 1.5s ease-in-out infinite;
+      }
+      @keyframes focusPulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .node-unknown .node-circle {
+        fill: url(#unknownGradient);
+        stroke: #ffc107;
+        stroke-width: 2;
+        stroke-dasharray: 4 4;
+      }
+      .info-panel {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: rgba(30, 58, 40, 0.95);
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid rgba(127, 219, 154, 0.3);
+        backdrop-filter: blur(10px);
+        transform: translateY(100%);
+        opacity: 0;
+        transition: all 0.3s ease;
+      }
+      .info-panel.visible {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      .info-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+      .info-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7fdb9a 0%, #4a9d6a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f2518;
+      }
+      .info-name {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .info-dates {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .info-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .info-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .info-btn-primary {
+        background: linear-gradient(135deg, #7fdb9a 0%, #4a9d6a 100%);
+        color: #0f2518;
+      }
+      .info-btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+      .close-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 24px;
+        cursor: pointer;
+      }
+      .legend {
+        position: absolute;
+        top: 80px;
+        right: 20px;
+        background: rgba(30, 58, 40, 0.9);
+        border-radius: 12px;
+        padding: 16px;
+        font-size: 12px;
+        border: 1px solid rgba(127, 219, 154, 0.2);
+      }
+      .legend-title {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #7fdb9a;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .legend-line {
+        width: 24px;
+        height: 2px;
+      }
+      .mockup-label {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        z-index: 200;
+      }
+      .zoom-controls {
+        position: absolute;
+        bottom: 100px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .zoom-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(30, 58, 40, 0.9);
+        border: 1px solid rgba(127, 219, 154, 0.3);
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mockup-label">MOCKUP: Flowing Tree Visualization with Organic Layout</div>
+    <div class="container">
+      <header class="header">
+        <h1>McGinty Family Tree</h1>
+        <div class="header-actions">
+          <button class="header-btn">Filter</button><button class="header-btn">Search</button>
+        </div>
+      </header>
+      <svg class="tree-canvas" viewBox="0 0 1200 800">
+        <defs>
+          <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color: #7fdb9a; stop-opacity: 0.8" />
+            <stop offset="100%" style="stop-color: #4a9d6a; stop-opacity: 0.4" />
+          </linearGradient>
+          <radialGradient id="nodeGradient" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" style="stop-color: #9aebaf" />
+            <stop offset="100%" style="stop-color: #4a9d6a" />
+          </radialGradient>
+          <radialGradient id="unknownGradient" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" style="stop-color: #ffe082" />
+            <stop offset="100%" style="stop-color: #bf8f00" />
+          </radialGradient>
+          <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" style="stop-color: #7fdb9a; stop-opacity: 0.4" />
+            <stop offset="100%" style="stop-color: #7fdb9a; stop-opacity: 0" />
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <g class="connections">
+          <path class="connection connection-animated" d="M 600,200 C 600,280 400,280 400,360" />
+          <path class="connection connection-animated" d="M 600,200 C 600,280 600,280 600,360" />
+          <path class="connection connection-animated" d="M 600,200 C 600,280 800,280 800,360" />
+          <path class="connection" d="M 400,360 C 400,440 300,440 300,520" />
+          <path class="connection" d="M 400,360 C 400,440 500,440 500,520" />
+          <path class="connection" d="M 600,360 C 600,440 600,440 600,520" />
+          <path class="connection" d="M 800,360 C 800,440 700,440 700,520" />
+          <path class="connection" d="M 800,360 C 800,440 900,440 900,520" />
+          <path class="connection" d="M 300,520 C 300,600 250,600 250,680" />
+          <path class="connection" d="M 300,520 C 300,600 350,600 350,680" />
+          <path class="spouse-connection" d="M 560,200 L 640,200" />
+        </g>
+        <g
+          class="node node-unknown"
+          transform="translate(500, 80)"
+          onclick="showInfo('unknown-father')"
+        >
+          <circle class="node-circle" r="28" />
+          <text class="node-text" dy="5">?</text>
+          <text class="node-label" dy="50">Father</text>
+          <text class="node-years" dy="65">Unknown</text>
+        </g>
+        <g
+          class="node node-unknown"
+          transform="translate(700, 80)"
+          onclick="showInfo('unknown-mother')"
+        >
+          <circle class="node-circle" r="28" />
+          <text class="node-text" dy="5">?</text>
+          <text class="node-label" dy="50">Mother</text>
+          <text class="node-years" dy="65">Unknown</text>
+        </g>
+        <g class="node selected" transform="translate(600, 200)" onclick="showInfo('ellen')">
+          <circle class="node-glow" r="45" fill="url(#glowGradient)" />
+          <circle class="focus-ring" r="48" />
+          <circle class="node-circle" r="40" fill="url(#nodeGradient)" filter="url(#glow)" />
+          <text class="node-text" dy="5">EM</text>
+          <text class="node-label" dy="60">Ellen McGinty</text>
+          <text class="node-years" dy="75">1872-1954</text>
+        </g>
+        <g class="node" transform="translate(400, 360)" onclick="showInfo('james')">
+          <circle class="node-glow" r="38" fill="url(#glowGradient)" />
+          <circle class="node-circle" r="35" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="5">JM</text>
+          <text class="node-label" dy="55">James</text>
+          <text class="node-years" dy="70">1895-1972</text>
+        </g>
+        <g class="node" transform="translate(600, 360)" onclick="showInfo('mary')">
+          <circle class="node-glow" r="38" fill="url(#glowGradient)" />
+          <circle class="node-circle" r="35" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="5">MM</text>
+          <text class="node-label" dy="55">Mary</text>
+          <text class="node-years" dy="70">1897-1981</text>
+        </g>
+        <g class="node" transform="translate(800, 360)" onclick="showInfo('patrick-jr')">
+          <circle class="node-glow" r="38" fill="url(#glowGradient)" />
+          <circle class="node-circle" r="35" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="5">PJ</text>
+          <text class="node-label" dy="55">Patrick Jr</text>
+          <text class="node-years" dy="70">1899-1968</text>
+        </g>
+        <g class="node" transform="translate(300, 520)">
+          <circle class="node-circle" r="30" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="4">RM</text>
+          <text class="node-label" dy="48">Robert</text>
+          <text class="node-years" dy="62">1920-1998</text>
+        </g>
+        <g class="node" transform="translate(500, 520)">
+          <circle class="node-circle" r="30" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="4">HM</text>
+          <text class="node-label" dy="48">Helen</text>
+          <text class="node-years" dy="62">1922-2010</text>
+        </g>
+        <g class="node" transform="translate(600, 520)">
+          <circle class="node-circle" r="30" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="4">CM</text>
+          <text class="node-label" dy="48">Catherine</text>
+          <text class="node-years" dy="62">1924-2015</text>
+        </g>
+        <g class="node" transform="translate(700, 520)">
+          <circle class="node-circle" r="30" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="4">TM</text>
+          <text class="node-label" dy="48">Thomas</text>
+          <text class="node-years" dy="62">1925-2001</text>
+        </g>
+        <g class="node" transform="translate(900, 520)">
+          <circle class="node-circle" r="30" fill="url(#nodeGradient)" />
+          <text class="node-text" dy="4">EB</text>
+          <text class="node-label" dy="48">Elizabeth</text>
+          <text class="node-years" dy="62">1928-</text>
+        </g>
+        <g class="node" transform="translate(250, 680)">
+          <circle class="node-circle" r="25" fill="url(#nodeGradient)" />
+          <text class="node-text" style="font-size: 10px" dy="4">JM</text>
+          <text class="node-label" dy="42">Jennifer</text>
+          <text class="node-years" dy="55">1952-</text>
+        </g>
+        <g class="node" transform="translate(350, 680)">
+          <circle class="node-circle" r="25" fill="url(#nodeGradient)" />
+          <text class="node-text" style="font-size: 10px" dy="4">MM</text>
+          <text class="node-label" dy="42">Michael</text>
+          <text class="node-years" dy="55">1955-</text>
+        </g>
+        <circle r="2" fill="#7fdb9a" opacity="0.3">
+          <animate attributeName="cy" values="800;0" dur="20s" repeatCount="indefinite" />
+          <animate attributeName="cx" values="100;150;100" dur="10s" repeatCount="indefinite" />
+        </circle>
+        <circle r="1.5" fill="#7fdb9a" opacity="0.2">
+          <animate
+            attributeName="cy"
+            values="800;0"
+            dur="25s"
+            repeatCount="indefinite"
+            begin="5s"
+          />
+          <animate attributeName="cx" values="1000;1050;1000" dur="12s" repeatCount="indefinite" />
+        </circle>
+      </svg>
+      <div class="legend">
+        <div class="legend-title">Legend</div>
+        <div class="legend-item">
+          <div
+            class="legend-dot"
+            style="background: linear-gradient(135deg, #7fdb9a, #4a9d6a)"
+          ></div>
+          <span>Known Person</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-dot"
+            style="
+              background: linear-gradient(135deg, #ffe082, #bf8f00);
+              border: 1px dashed #ffc107;
+            "
+          ></div>
+          <span>Unknown / Research Needed</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-line"
+            style="background: linear-gradient(90deg, #7fdb9a, #4a9d6a)"
+          ></div>
+          <span>Parent-Child</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="background: #ff69b4"></div>
+          <span>Spouse</span>
+        </div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn">+</button><button class="zoom-btn">−</button
+        ><button class="zoom-btn">⟲</button>
+      </div>
+      <div class="info-panel" id="infoPanel">
+        <button class="close-btn" onclick="hideInfo()">×</button>
+        <div class="info-header">
+          <div class="info-avatar" id="infoAvatar">EM</div>
+          <div>
+            <div class="info-name" id="infoName">Ellen McGinty</div>
+            <div class="info-dates" id="infoDates">1872 - 1954 · she/her</div>
+          </div>
+        </div>
+        <p
+          id="infoStory"
+          style="
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+            margin-bottom: 16px;
+          "
+        >
+          The first McGinty to come to America. Arrived at Ellis Island in 1892 with $20 and endless
+          hope.
+        </p>
+        <div class="info-actions">
+          <button class="info-btn info-btn-primary">View Full Profile</button
+          ><button class="info-btn info-btn-secondary">Find My Connection</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      const people = {
+        ellen: {
+          initials: 'EM',
+          name: 'Ellen McGinty',
+          dates: '1872 - 1954 · she/her',
+          story:
+            'The first McGinty to come to America. Arrived at Ellis Island in 1892 with $20 and endless hope.',
+        },
+        james: {
+          initials: 'JM',
+          name: 'James McGinty',
+          dates: '1895 - 1972 · he/him',
+          story:
+            'Eldest son of Ellen. Worked as a carpenter and built many homes in the Boston area.',
+        },
+        'unknown-father': {
+          initials: '?',
+          name: "Ellen's Father",
+          dates: 'Unknown',
+          story: "We don't know who Ellen's father was. Can you help research this?",
+        },
+      };
+      function showInfo(personId) {
+        const person = people[personId] || people['ellen'];
+        document.getElementById('infoAvatar').textContent = person.initials;
+        document.getElementById('infoName').textContent = person.name;
+        document.getElementById('infoDates').textContent = person.dates;
+        document.getElementById('infoStory').textContent = person.story;
+        document.getElementById('infoPanel').classList.add('visible');
+      }
+      function hideInfo() {
+        document.getElementById('infoPanel').classList.remove('visible');
+      }
+    </script>
+  </body>
 </html>

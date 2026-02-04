@@ -1,90 +1,495 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Family Connections - List View with Search</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1e3a28 100%); min-height: 100vh; color: white; }
-    .phone-frame { max-width: 390px; margin: 20px auto; background: #0d1f15; border-radius: 40px; padding: 12px; box-shadow: 0 25px 80px rgba(0,0,0,0.5); }
-    .screen { background: linear-gradient(180deg, #0f2518 0%, #1a3325 100%); border-radius: 32px; min-height: 780px; overflow: hidden; position: relative; }
-    .status-bar { display: flex; justify-content: space-between; padding: 12px 24px; font-size: 14px; font-weight: 600; }
-    .header { padding: 0 20px 16px; }
-    .header h1 { font-size: 24px; font-weight: 700; color: #7fdb9a; margin-bottom: 16px; }
-    .search-container { position: relative; }
-    .search-input { width: 100%; padding: 14px 16px 14px 44px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-size: 16px; outline: none; }
-    .search-input::placeholder { color: rgba(255,255,255,0.4); }
-    .search-input:focus { border-color: #7fdb9a; background: rgba(127, 219, 154, 0.1); }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; opacity: 0.5; }
-    .search-count { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #7fdb9a; background: rgba(127, 219, 154, 0.2); padding: 4px 8px; border-radius: 10px; }
-    .filter-row { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; scrollbar-width: none; }
-    .filter-row::-webkit-scrollbar { display: none; }
-    .filter-chip { flex-shrink: 0; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; font-size: 13px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.2s; }
-    .filter-chip.active { background: rgba(127, 219, 154, 0.2); border-color: #7fdb9a; color: #7fdb9a; }
-    .filter-chip:hover { background: rgba(255,255,255,0.12); }
-    .person-list { padding: 0 20px; max-height: 520px; overflow-y: auto; }
-    .person-row { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 4px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
-    .person-row:hover { background: rgba(255,255,255,0.05); }
-    .person-row.focused { background: rgba(127, 219, 154, 0.15); border: 1px solid rgba(127, 219, 154, 0.3); }
-    .person-row.selected { background: rgba(127, 219, 154, 0.2); }
-    .tree-indent { display: flex; align-items: center; color: rgba(255,255,255,0.2); font-family: monospace; font-size: 14px; flex-shrink: 0; }
-    .indent-space { width: 20px; }
-    .indent-connector { width: 20px; text-align: center; }
-    .person-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #5a8a6a 0%, #3a6a4a 100%); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
-    .person-avatar.incomplete { background: linear-gradient(135deg, #8a7a3a 0%, #6a5a2a 100%); border: 2px dashed #ffc107; }
-    .person-info { flex: 1; min-width: 0; }
-    .person-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .person-name mark { background: rgba(127, 219, 154, 0.4); color: white; padding: 0 2px; border-radius: 2px; }
-    .person-meta { font-size: 12px; color: rgba(255,255,255,0.5); display: flex; gap: 8px; align-items: center; }
-    .person-dates { color: rgba(255,255,255,0.4); }
-    .person-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); }
-    .person-badge.incomplete { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
-    .person-badge.stories { background: rgba(127, 219, 154, 0.2); color: #7fdb9a; }
-    .focus-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
-    .focus-btn:hover { background: rgba(127, 219, 154, 0.15); border-color: #7fdb9a; color: #7fdb9a; }
-    .focus-btn.active { background: #7fdb9a; border-color: #7fdb9a; color: #0f2518; }
-    .keyboard-hint { position: absolute; bottom: 90px; left: 20px; right: 20px; background: rgba(0,0,0,0.6); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: center; gap: 16px; font-size: 11px; color: rgba(255,255,255,0.6); }
-    .key { background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; font-family: monospace; margin-right: 4px; }
-    .focus-banner { display: none; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(127, 219, 154, 0.15); border-bottom: 1px solid rgba(127, 219, 154, 0.3); }
-    .focus-banner.visible { display: flex; }
-    .focus-banner-text { font-size: 13px; color: #7fdb9a; }
-    .focus-banner-text strong { color: white; }
-    .show-all-btn { background: rgba(127, 219, 154, 0.2); border: none; color: #7fdb9a; padding: 6px 12px; border-radius: 16px; font-size: 12px; cursor: pointer; }
-    .nav-bar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 24px; background: rgba(15, 37, 24, 0.98); border-top: 1px solid rgba(255,255,255,0.1); }
-    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: rgba(255,255,255,0.4); font-size: 10px; cursor: pointer; }
-    .nav-item.active { color: #7fdb9a; }
-    .nav-icon { font-size: 24px; }
-    .mockup-label { text-align: center; padding: 20px; color: rgba(255,255,255,0.6); font-size: 14px; }
-    .demo-toggle { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: rgba(0,0,0,0.8); color: white; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; z-index: 100; }
-  </style>
-</head>
-<body>
-  <p class="mockup-label">MOCKUP: List View with Search (Preserved Feature)</p>
-  <div class="phone-frame">
-    <div class="screen">
-      <div class="status-bar"><span>9:41</span><span></span><span>100%</span></div>
-      <div class="header"><h1>Family Graph</h1><div class="search-container"><span class="search-icon">🔍</span><input type="text" class="search-input" placeholder="Search people..." value="Ellen" id="searchInput"><span class="search-count" id="searchCount">3 of 247</span></div></div>
-      <div class="filter-row"><div class="filter-chip active">All</div><div class="filter-chip">Living</div><div class="filter-chip">Incomplete</div><div class="filter-chip">With Stories</div><div class="filter-chip">Direct Line</div></div>
-      <div class="focus-banner" id="focusBanner"><span class="focus-banner-text">Focused on <strong>Ellen McGinty</strong> + ancestors</span><button class="show-all-btn" onclick="toggleFocus()">Show All</button></div>
-      <div class="person-list">
-        <div class="person-row focused"><div class="tree-indent"></div><div class="person-avatar">EM</div><div class="person-info"><div class="person-name"><mark>Ellen</mark> McGinty</div><div class="person-meta"><span class="person-dates">1872-1954</span><span class="person-badge incomplete">⚠️ Incomplete</span><span class="person-badge stories">5 stories</span></div></div><button class="focus-btn active" title="Focused">⌖</button></div>
-        <div class="person-row"><div class="tree-indent"><span class="indent-connector">└─</span></div><div class="person-avatar">JM</div><div class="person-info"><div class="person-name">James McGinty</div><div class="person-meta"><span class="person-dates">1895-1972</span><span class="person-badge stories">2 stories</span></div></div><button class="focus-btn" title="Focus">○</button></div>
-        <div class="person-row"><div class="tree-indent"><span class="indent-space"></span><span class="indent-connector">└─</span></div><div class="person-avatar">RM</div><div class="person-info"><div class="person-name">Robert McGinty</div><div class="person-meta"><span class="person-dates">1920-1998</span></div></div><button class="focus-btn" title="Focus">○</button></div>
-        <div class="person-row"><div class="tree-indent"><span class="indent-space"></span><span class="indent-space"></span><span class="indent-connector">└─</span></div><div class="person-avatar">JM</div><div class="person-info"><div class="person-name">Jennifer McGinty</div><div class="person-meta"><span class="person-dates">1952-</span></div></div><button class="focus-btn" title="Focus">○</button></div>
-        <div class="person-row selected"><div class="tree-indent"><span class="indent-space"></span><span class="indent-space"></span><span class="indent-space"></span><span class="indent-connector">└─</span></div><div class="person-avatar">SM</div><div class="person-info"><div class="person-name">Sarah McGinty</div><div class="person-meta"><span class="person-dates">1985-</span><span class="person-badge" style="background: rgba(100,149,237,0.2); color: #6495ed;">That's you!</span></div></div><button class="focus-btn" title="Focus">○</button></div>
-        <div class="person-row"><div class="tree-indent"><span class="indent-connector">└─</span></div><div class="person-avatar">MM</div><div class="person-info"><div class="person-name">Mary <mark>Ellen</mark>a McGinty</div><div class="person-meta"><span class="person-dates">1897-1981</span><span class="person-badge stories">1 story</span></div></div><button class="focus-btn" title="Focus">○</button></div>
-        <div class="person-row"><div class="tree-indent"><span class="indent-connector">└─</span></div><div class="person-avatar">PJ</div><div class="person-info"><div class="person-name">Patrick McGinty Jr</div><div class="person-meta"><span class="person-dates">1899-1968</span></div></div><button class="focus-btn" title="Focus">○</button></div>
-        <div class="person-row"><div class="tree-indent"><span class="indent-connector">↑</span></div><div class="person-avatar incomplete">?</div><div class="person-info"><div class="person-name"><mark>Ellen</mark>'s Father</div><div class="person-meta"><span class="person-dates">Unknown</span><span class="person-badge incomplete">Research needed</span></div></div><button class="focus-btn" title="Focus">○</button></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Family Connections - List View with Search</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1e3a28 100%);
+        min-height: 100vh;
+        color: white;
+      }
+      .phone-frame {
+        max-width: 390px;
+        margin: 20px auto;
+        background: #0d1f15;
+        border-radius: 40px;
+        padding: 12px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+      }
+      .screen {
+        background: linear-gradient(180deg, #0f2518 0%, #1a3325 100%);
+        border-radius: 32px;
+        min-height: 780px;
+        overflow: hidden;
+        position: relative;
+      }
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .header {
+        padding: 0 20px 16px;
+      }
+      .header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #7fdb9a;
+        margin-bottom: 16px;
+      }
+      .search-container {
+        position: relative;
+      }
+      .search-input {
+        width: 100%;
+        padding: 14px 16px 14px 44px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        color: white;
+        font-size: 16px;
+        outline: none;
+      }
+      .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .search-input:focus {
+        border-color: #7fdb9a;
+        background: rgba(127, 219, 154, 0.1);
+      }
+      .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        opacity: 0.5;
+      }
+      .search-count {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 12px;
+        color: #7fdb9a;
+        background: rgba(127, 219, 154, 0.2);
+        padding: 4px 8px;
+        border-radius: 10px;
+      }
+      .filter-row {
+        display: flex;
+        gap: 8px;
+        padding: 12px 20px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .filter-row::-webkit-scrollbar {
+        display: none;
+      }
+      .filter-chip {
+        flex-shrink: 0;
+        padding: 8px 14px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .filter-chip.active {
+        background: rgba(127, 219, 154, 0.2);
+        border-color: #7fdb9a;
+        color: #7fdb9a;
+      }
+      .filter-chip:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .person-list {
+        padding: 0 20px;
+        max-height: 520px;
+        overflow-y: auto;
+      }
+      .person-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        margin-bottom: 4px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .person-row:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .person-row.focused {
+        background: rgba(127, 219, 154, 0.15);
+        border: 1px solid rgba(127, 219, 154, 0.3);
+      }
+      .person-row.selected {
+        background: rgba(127, 219, 154, 0.2);
+      }
+      .tree-indent {
+        display: flex;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.2);
+        font-family: monospace;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .indent-space {
+        width: 20px;
+      }
+      .indent-connector {
+        width: 20px;
+        text-align: center;
+      }
+      .person-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #5a8a6a 0%, #3a6a4a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .person-avatar.incomplete {
+        background: linear-gradient(135deg, #8a7a3a 0%, #6a5a2a 100%);
+        border: 2px dashed #ffc107;
+      }
+      .person-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .person-name {
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .person-name mark {
+        background: rgba(127, 219, 154, 0.4);
+        color: white;
+        padding: 0 2px;
+        border-radius: 2px;
+      }
+      .person-meta {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .person-dates {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .person-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .person-badge.incomplete {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+      }
+      .person-badge.stories {
+        background: rgba(127, 219, 154, 0.2);
+        color: #7fdb9a;
+      }
+      .focus-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s;
+      }
+      .focus-btn:hover {
+        background: rgba(127, 219, 154, 0.15);
+        border-color: #7fdb9a;
+        color: #7fdb9a;
+      }
+      .focus-btn.active {
+        background: #7fdb9a;
+        border-color: #7fdb9a;
+        color: #0f2518;
+      }
+      .keyboard-hint {
+        position: absolute;
+        bottom: 90px;
+        left: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .key {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        margin-right: 4px;
+      }
+      .focus-banner {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        background: rgba(127, 219, 154, 0.15);
+        border-bottom: 1px solid rgba(127, 219, 154, 0.3);
+      }
+      .focus-banner.visible {
+        display: flex;
+      }
+      .focus-banner-text {
+        font-size: 13px;
+        color: #7fdb9a;
+      }
+      .focus-banner-text strong {
+        color: white;
+      }
+      .show-all-btn {
+        background: rgba(127, 219, 154, 0.2);
+        border: none;
+        color: #7fdb9a;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .nav-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 0 24px;
+        background: rgba(15, 37, 24, 0.98);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 10px;
+        cursor: pointer;
+      }
+      .nav-item.active {
+        color: #7fdb9a;
+      }
+      .nav-icon {
+        font-size: 24px;
+      }
+      .mockup-label {
+        text-align: center;
+        padding: 20px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+      }
+      .demo-toggle {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        z-index: 100;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="mockup-label">MOCKUP: List View with Search (Preserved Feature)</p>
+    <div class="phone-frame">
+      <div class="screen">
+        <div class="status-bar"><span>9:41</span><span></span><span>100%</span></div>
+        <div class="header">
+          <h1>Family Graph</h1>
+          <div class="search-container">
+            <span class="search-icon">🔍</span
+            ><input
+              type="text"
+              class="search-input"
+              placeholder="Search people..."
+              value="Ellen"
+              id="searchInput"
+            /><span class="search-count" id="searchCount">3 of 247</span>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-chip active">All</div>
+          <div class="filter-chip">Living</div>
+          <div class="filter-chip">Incomplete</div>
+          <div class="filter-chip">With Stories</div>
+          <div class="filter-chip">Direct Line</div>
+        </div>
+        <div class="focus-banner" id="focusBanner">
+          <span class="focus-banner-text"
+            >Focused on <strong>Ellen McGinty</strong> + ancestors</span
+          ><button class="show-all-btn" onclick="toggleFocus()">Show All</button>
+        </div>
+        <div class="person-list">
+          <div class="person-row focused">
+            <div class="tree-indent"></div>
+            <div class="person-avatar">EM</div>
+            <div class="person-info">
+              <div class="person-name"><mark>Ellen</mark> McGinty</div>
+              <div class="person-meta">
+                <span class="person-dates">1872-1954</span
+                ><span class="person-badge incomplete">⚠️ Incomplete</span
+                ><span class="person-badge stories">5 stories</span>
+              </div>
+            </div>
+            <button class="focus-btn active" title="Focused">⌖</button>
+          </div>
+          <div class="person-row">
+            <div class="tree-indent"><span class="indent-connector">└─</span></div>
+            <div class="person-avatar">JM</div>
+            <div class="person-info">
+              <div class="person-name">James McGinty</div>
+              <div class="person-meta">
+                <span class="person-dates">1895-1972</span
+                ><span class="person-badge stories">2 stories</span>
+              </div>
+            </div>
+            <button class="focus-btn" title="Focus">○</button>
+          </div>
+          <div class="person-row">
+            <div class="tree-indent">
+              <span class="indent-space"></span><span class="indent-connector">└─</span>
+            </div>
+            <div class="person-avatar">RM</div>
+            <div class="person-info">
+              <div class="person-name">Robert McGinty</div>
+              <div class="person-meta"><span class="person-dates">1920-1998</span></div>
+            </div>
+            <button class="focus-btn" title="Focus">○</button>
+          </div>
+          <div class="person-row">
+            <div class="tree-indent">
+              <span class="indent-space"></span><span class="indent-space"></span
+              ><span class="indent-connector">└─</span>
+            </div>
+            <div class="person-avatar">JM</div>
+            <div class="person-info">
+              <div class="person-name">Jennifer McGinty</div>
+              <div class="person-meta"><span class="person-dates">1952-</span></div>
+            </div>
+            <button class="focus-btn" title="Focus">○</button>
+          </div>
+          <div class="person-row selected">
+            <div class="tree-indent">
+              <span class="indent-space"></span><span class="indent-space"></span
+              ><span class="indent-space"></span><span class="indent-connector">└─</span>
+            </div>
+            <div class="person-avatar">SM</div>
+            <div class="person-info">
+              <div class="person-name">Sarah McGinty</div>
+              <div class="person-meta">
+                <span class="person-dates">1985-</span
+                ><span
+                  class="person-badge"
+                  style="background: rgba(100, 149, 237, 0.2); color: #6495ed"
+                  >That's you!</span
+                >
+              </div>
+            </div>
+            <button class="focus-btn" title="Focus">○</button>
+          </div>
+          <div class="person-row">
+            <div class="tree-indent"><span class="indent-connector">└─</span></div>
+            <div class="person-avatar">MM</div>
+            <div class="person-info">
+              <div class="person-name">Mary <mark>Ellen</mark>a McGinty</div>
+              <div class="person-meta">
+                <span class="person-dates">1897-1981</span
+                ><span class="person-badge stories">1 story</span>
+              </div>
+            </div>
+            <button class="focus-btn" title="Focus">○</button>
+          </div>
+          <div class="person-row">
+            <div class="tree-indent"><span class="indent-connector">└─</span></div>
+            <div class="person-avatar">PJ</div>
+            <div class="person-info">
+              <div class="person-name">Patrick McGinty Jr</div>
+              <div class="person-meta"><span class="person-dates">1899-1968</span></div>
+            </div>
+            <button class="focus-btn" title="Focus">○</button>
+          </div>
+          <div class="person-row">
+            <div class="tree-indent"><span class="indent-connector">↑</span></div>
+            <div class="person-avatar incomplete">?</div>
+            <div class="person-info">
+              <div class="person-name"><mark>Ellen</mark>'s Father</div>
+              <div class="person-meta">
+                <span class="person-dates">Unknown</span
+                ><span class="person-badge incomplete">Research needed</span>
+              </div>
+            </div>
+            <button class="focus-btn" title="Focus">○</button>
+          </div>
+        </div>
+        <div class="keyboard-hint">
+          <span><span class="key">↑↓</span> Navigate</span
+          ><span><span class="key">Enter</span> Open</span
+          ><span><span class="key">F</span> Focus</span
+          ><span><span class="key">Esc</span> Clear</span>
+        </div>
+        <nav class="nav-bar">
+          <div class="nav-item"><span class="nav-icon">🏠</span><span>Home</span></div>
+          <div class="nav-item"><span class="nav-icon">📱</span><span>Connect</span></div>
+          <div class="nav-item active"><span class="nav-icon">🌳</span><span>Tree</span></div>
+          <div class="nav-item"><span class="nav-icon">📖</span><span>Stories</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span><span>Profile</span></div>
+        </nav>
       </div>
-      <div class="keyboard-hint"><span><span class="key">↑↓</span> Navigate</span><span><span class="key">Enter</span> Open</span><span><span class="key">F</span> Focus</span><span><span class="key">Esc</span> Clear</span></div>
-      <nav class="nav-bar"><div class="nav-item"><span class="nav-icon">🏠</span><span>Home</span></div><div class="nav-item"><span class="nav-icon">📱</span><span>Connect</span></div><div class="nav-item active"><span class="nav-icon">🌳</span><span>Tree</span></div><div class="nav-item"><span class="nav-icon">📖</span><span>Stories</span></div><div class="nav-item"><span class="nav-icon">👤</span><span>Profile</span></div></nav>
     </div>
-  </div>
-  <button class="demo-toggle" onclick="toggleFocus()">Toggle Focus Mode</button>
-  <script>
-    let focusMode = false;
-    function toggleFocus() { focusMode = !focusMode; document.getElementById('focusBanner').classList.toggle('visible', focusMode); }
-  </script>
-</body>
+    <button class="demo-toggle" onclick="toggleFocus()">Toggle Focus Mode</button>
+    <script>
+      let focusMode = false;
+      function toggleFocus() {
+        focusMode = !focusMode;
+        document.getElementById('focusBanner').classList.toggle('visible', focusMode);
+      }
+    </script>
+  </body>
 </html>
