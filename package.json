@@ -40,7 +40,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/parser": "^7.28.6",
+    "@babel/parser": "^7.29.0",
     "@babel/traverse": "^7.29.0",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.57.0",
