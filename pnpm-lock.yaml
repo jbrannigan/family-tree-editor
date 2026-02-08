@@ -12,8 +12,8 @@ importers:
         specifier: ^19.2.4
         version: 19.2.4
       react-dom:
-        specifier: ^19.2.3
-        version: 19.2.3(react@19.2.4)
+        specifier: ^19.2.4
+        version: 19.2.4(react@19.2.4)
       react-icons:
         specifier: ^5.5.0
         version: 5.5.0(react@19.2.4)
@@ -5180,10 +5180,10 @@ packages:
       typescript:
         optional: true
 
-  react-dom@19.2.3:
-    resolution: {integrity: sha512-yELu4WmLPw5Mr/lmeEpox5rw3RETacE++JgHqQzd2dg+YbJuat3jH4ingc+WPZhxaoFzdv9y33G+F7Nl5O0GBg==}
+  react-dom@19.2.4:
+    resolution: {integrity: sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==}
     peerDependencies:
-      react: ^19.2.3
+      react: ^19.2.4
 
   react-error-overlay@6.1.0:
     resolution: {integrity: sha512-SN/U6Ytxf1QGkw/9ve5Y+NxBbZM6Ht95tuXNMKs8EJyFa/Vy/+Co3stop3KBHARfn/giv+Lj1uUnTfOJ3moFEQ==}
@@ -12527,7 +12527,7 @@ snapshots:
       - supports-color
       - vue-template-compiler
 
-  react-dom@19.2.3(react@19.2.4):
+  react-dom@19.2.4(react@19.2.4):
     dependencies:
       react: 19.2.4
       scheduler: 0.27.0
