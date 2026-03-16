@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           # "src_changed" is true when any file under src/ was modified.
           # E2E tests run whenever src/ changes or on non-PR events (push to main).
