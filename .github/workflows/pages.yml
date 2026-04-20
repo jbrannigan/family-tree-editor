@@ -33,7 +33,7 @@ jobs:
         env:
           REACT_APP_CLAN_TREE_URL: ${{ secrets.CLAN_TREE_URL }}
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: build
 
