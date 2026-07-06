@@ -21,9 +21,9 @@ jobs:
     outputs:
       src_changed: ${{ steps.filter.outputs.src_changed }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           # "src_changed" is true when any file under src/ was modified.
           # E2E tests run whenever src/ changes or on non-PR events (push to main).
@@ -35,7 +35,7 @@ jobs:
     name: Lint & format check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: 20
@@ -55,7 +55,7 @@ jobs:
       matrix:
         node: [18, 20, 22]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
@@ -75,7 +75,7 @@ jobs:
       # --- Upload the full HTML report as a downloadable artifact
       - name: Upload coverage artifact              # Step label in the UI
         if: matrix.node == 20                       # Only upload once (Node 20 leg)
-        uses: actions/upload-artifact@v6            # GitHub’s official artifact uploader
+        uses: actions/upload-artifact@v7            # GitHub’s official artifact uploader
         with:
           name: unit-coverage-html                  # Artifact name as it will appear on the run page
           path: coverage                            # Upload the entire 'coverage' directory vitest produced
@@ -116,7 +116,7 @@ jobs:
         shard: [1, 2, 3]
     if: ${{ github.event_name != 'pull_request' || needs.changed-files.outputs.src_changed == 'true' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: 20
@@ -138,7 +138,7 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shard }}/3 --reporter=line
       - name: Upload shard report
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-shard-${{ matrix.shard }}
           path: playwright-report
